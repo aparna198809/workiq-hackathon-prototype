@@ -50,6 +50,10 @@ def _text(result) -> str:
 async def run_persona(persona: str) -> dict:
     env = dict(os.environ)
     env["WORKIQ_SIM_PERSONA"] = persona
+    # This end-to-end test asserts against the C2 (Contoso) milestone_tracker, so
+    # pin its scenario explicitly rather than relying on the server's default
+    # (which is c1-northbridge and exposes no milestone_tracker table).
+    env["WORKIQ_SIM_SCENARIO"] = "scenarios/c2-contoso"
     params = StdioServerParameters(command=PYTHON, args=[str(SERVER)], env=env)
     out: dict = {}
     async with stdio_client(params) as (read, write):

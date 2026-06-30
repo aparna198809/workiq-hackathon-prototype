@@ -1,11 +1,20 @@
-# Local Work IQ Simulator (mcp + optional openai)
+# Local Work IQ Simulator dependencies (server.py + engine.py).
 #
 # Metadata
-#   Created: 14-JUN-2026
-#   Purpose: dependencies for the local Work IQ MCP simulator (server.py + engine.py).
+#   Created: 14-JUN-2026  ·  Updated: 30-JUN-2026
+#   Purpose: dependencies for the local Work IQ MCP simulator.
 #
-# Install into the repo venv:
-#   .\.venv\Scripts\python.exe -m pip install -r simulator\requirements.txt
+# Install into the repo venv (Windows ARM64: keep --only-binary so native deps
+# like numpy use prebuilt wheels instead of compiling from source):
+#   .\.venv\Scripts\python.exe -m pip install --only-binary=:all: -r simulator\requirements.txt
 
 mcp>=1.27           # MCP Python SDK (FastMCP stdio server + client)
+numpy>=1.26         # cosine-similarity retrieval over embeddings (engine.py)
+
+# Optional embedding-backed retrieval. engine.py imports these lazily inside
+# _get_embeddings(); without AZURE_OPENAI_ENDPOINT it falls back to term-overlap,
+# but the imports must still resolve at runtime.
+httpx>=0.27         # HTTP call to the Azure OpenAI embeddings endpoint
+azure-identity>=1.19  # AzureCliCredential for the embeddings request
+
 openai>=1.0         # OPTIONAL: ad-hoc LLM fallback for non-golden questions

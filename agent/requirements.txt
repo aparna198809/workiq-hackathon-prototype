@@ -21,9 +21,12 @@ httpx==0.28.1                      # A2A HTTP client (persona header injection)
 # --- Web UI (web.py) ---
 fastapi==0.138.2
 uvicorn==0.49.0
+pydantic==2.13.4                   # request model in web.py (also an agent-framework dep)
 
 # --- Diagnostics (test.py token inspector) ---
 PyJWT==2.13.0
 
-# --- Work IQ MCP simulator transport (also in simulator/requirements.txt) ---
-mcp==1.28.1
+# --- Work IQ simulator backend (the agent spawns simulator/server.py and imports
+#     engine.py, so it needs the simulator's deps too) ---
+mcp==1.28.1                        # MCP stdio transport
+numpy==2.5.0                       # engine.py embedding/cosine retrieval

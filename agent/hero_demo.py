@@ -50,6 +50,12 @@ import engine  # noqa: E402
 SCENARIO = SIM_DIR / "scenarios" / "c1-northbridge"
 CAPA_TABLE = "capa_tracker"
 
+# The scenario's documented reference "today" (see capa_tracker.json header): an
+# OPEN/non-Closed corrective action whose due date is before this is past due.
+# We compute past-due from the due date rather than trusting the row's `past_due`
+# flag, because setting that flag is exactly what the hero action does.
+REFERENCE_TODAY = "2026-06-12"  # ISO dates compare lexicographically
+
 # The Joint Commission readiness hero question (matches golden Q5).
 HERO_QUESTION = (
     "Prep me for the Joint Commission readiness review: what did the quality "
@@ -164,13 +170,17 @@ def act3_tools(sc: "engine.Scenario") -> bool:
     before = engine.fetch(sc, CAPA_TABLE)
     _print_capa_table(before, "BEFORE — full CAPA tracker:")
 
-    # Target: OPEN corrective actions owned by the Quality Steering Committee.
-    open_quality = engine.fetch(
-        sc, CAPA_TABLE, {"committee": "quality_steering", "status": "Open"}
-    )
-    targets = [r["id"] for r in open_quality if r.get("past_due")]
-    print(banner(f"\nHero action: for each OPEN quality-committee CAPA that is past due "
-                 f"{targets}, call update_entity -> status='Escalated', past_due=True"))
+    # Target: quality-committee corrective actions that are still open (not Closed)
+    # AND past their due date, computed from due_date vs the reference "today".
+    quality_rows = engine.fetch(sc, CAPA_TABLE, {"committee": "quality_steering"})
+    targets = [
+        r["id"]
+        for r in quality_rows
+        if r.get("status") != "Closed" and r.get("due_date", "") < REFERENCE_TODAY
+    ]
+    print(banner(f"\nHero action: for each open quality-committee CAPA past due as of "
+                 f"{REFERENCE_TODAY} {targets}, call update_entity -> "
+                 f"status='Escalated', past_due=True"))
 
     updated_ids = []
     for cid in targets:
@@ -186,13 +196,13 @@ def act3_tools(sc: "engine.Scenario") -> bool:
     after = engine.fetch(sc, CAPA_TABLE)
     _print_capa_table(after, "AFTER — full CAPA tracker:")
 
-    # Guardrails: only past-due quality items move; Closed / non-quality / not-yet-due
-    # rows are left untouched.
+    # Guardrails: only past-due quality items move; Closed rows, non-quality rows,
+    # and not-yet-due rows are left untouched.
     escalated = {r["id"] for r in after if r["status"] == "Escalated"}
     expected = {"CAPA-001", "CAPA-004"}
     untouched_ok = (
         next(r for r in after if r["id"] == "CAPA-002")["status"] == "Closed"
-        and next(r for r in after if r["id"] == "CAPA-003")["status"] == "Open"
+        and next(r for r in after if r["id"] == "CAPA-003")["status"] != "Escalated"
     )
     ok = escalated == expected and untouched_ok and set(updated_ids) == expected
     print(_c("1;32" if ok else "1;31",
