@@ -1,0 +1,29 @@
+# Work IQ orchestrator agent — Python dependencies.
+#
+# Install into the repo venv (Windows ARM64: keep --only-binary so native deps
+# like `cryptography` use prebuilt wheels instead of compiling from Rust):
+#   .\.venv\Scripts\python.exe -m pip install --only-binary=:all: -r agent\requirements.txt
+#
+# NOTE: install the lean `agent-framework-core` (+ the two sub-packages the code
+# imports) rather than the `agent-framework` meta-package, whose `[all]` extras
+# pull dozens of providers and currently fail dependency resolution.
+
+# --- Microsoft Agent Framework (only the pieces workiq_agent.py imports) ---
+agent-framework-core==1.9.0        # Agent, MCPStdioTool, agent_framework.openai shim
+agent-framework-openai==1.8.2      # OpenAIChatClient (Foundry /openai/v1 endpoint)
+agent-framework-a2a==1.0.0b260604  # A2AAgent (remote Work IQ chat sub-agent)
+
+# --- Azure auth + model client ---
+azure-identity==1.25.3             # AzureCliCredential / DefaultAzureCredential
+openai==2.44.0                     # AsyncOpenAI client used against Foundry
+httpx==0.28.1                      # A2A HTTP client (persona header injection)
+
+# --- Web UI (web.py) ---
+fastapi==0.138.2
+uvicorn==0.49.0
+
+# --- Diagnostics (test.py token inspector) ---
+PyJWT==2.13.0
+
+# --- Work IQ MCP simulator transport (also in simulator/requirements.txt) ---
+mcp==1.28.1
