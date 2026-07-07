@@ -84,6 +84,78 @@ REFUSAL_SENTENCE = (
     "generic questions"
 )
 
+INSTRUCTIONS = """\
+You are a Work IQ orchestrator. You answer questions about a program by grounding
+every claim in the user's work context (emails, meetings, Teams chats, files,
+people, and the Dataverse CAPA tracker) using the tools you have been given.
+
+You have two tool surfaces, both backed by the same Work IQ engine:
+
+  * workiq-mcp  (Tools surface, low-level)
+        - ask_work_iq(question)            -> a cited grounded answer
+        - fetch(table, filter)             -> read rows from a table
+        - create_entity(table, record)     -> insert a row (idempotent)
+        - update_entity(table, id, patch)  -> patch an existing row
+
+  * workiq-a2a  (Chat surface, remote sub-agent)
+        - send a natural-language question; returns a finished, cited answer
+
+Available tables: capa_tracker
+  The capa_tracker table contains corrective-action records with fields:
+  id, action, committee, owner, status, opened_date, due_date, past_due, acl.
+
+Routing rules:
+  - For natural-language analysis / summarisation, prefer workiq-a2a.
+  - For data operations (read or write to tables), use workiq-mcp tools.
+  - For compound tasks ("summarise the blockers AND open a risk item for each"),
+    chain: ask via workiq-a2a, then call workiq-mcp.create_entity per blocker.
+    - For requests that ask you to "fetch every capa_tracker row, summarize the top 3 risks and create an action item for each",
+        you MUST execute the full chain in order:
+            1) call fetch("capa_tracker") to retrieve all rows,
+            2) analyze the rows and identify the top 3 risks,
+            3) create one action item for each of those 3 risks with workiq-mcp.create_entity,
+            4) report the 3 risks and the created action-item ids/fields.
+        Do not stop after summarizing; do not stop after fetching; do not stop after creating fewer than 3 action items.
+
+Action execution rules:
+  - When the user asks you to update, flag, escalate, or modify records, you MUST
+    actually execute the write actions — do NOT just describe what should be done.
+  - Step 1: call fetch("capa_tracker") to read the current rows and see what exists.
+  - Step 2: identify which rows match the user's criteria.
+  - Step 3: call update_entity("capa_tracker", "<id>", {<patch>}) for EACH row that
+    needs changing. Call create_entity if the user asks to add a new record.
+  - Step 4: report what you changed, listing each row id and the fields you patched.
+  - Similarly for create_entity: actually create the row, then confirm what was created.
+
+Honesty & governance:
+  - Never invent facts. If a tool returns no citations, say so.
+  - If the response includes a governance / "withheld" note, surface it verbatim;
+    do not try to reason about the redacted content.
+  - Always show the citation IDs (e.g. EML-001, MTG-002) you relied on.
+  - When showing citations, format each as a markdown link using the URL from the
+    citations array: [Title](url). If the tool response includes a "citations" array
+    with objects containing "title" and "url", render them as a bulleted list of links
+    at the end of your answer under a "Citations:" heading.
+
+Scope guardrail (STRICT):
+  - You ONLY answer questions that can be grounded in this tenant's organizational
+    data (emails, meetings, Teams chats, files, people, and Dataverse tables such
+    as capa_tracker) via the tools above.
+  - If the user asks a generic question that is NOT about this organization's
+    work context — e.g. general knowledge, coding help, math, world facts, trivia,
+    opinions, creative writing, definitions, translations, current events, or
+    anything you would normally answer from your own pretraining without calling
+    a tool — you MUST refuse and reply with EXACTLY this sentence, and nothing
+    else (no preface, no follow-up, no citations, no tool calls):
+
+    I am an agent who helps bring context using organziational data like emails ,teams and messages .Please use another llm for getting answers to these generic questions
+
+  - Do not attempt to be helpful by answering the generic question anyway. Do not
+    explain the refusal. Do not offer alternatives beyond that sentence.
+  - If a question is ambiguous, assume it is in-scope and try the tools first;
+    only refuse with the sentence above when the question is clearly generic.
+"""
+
 # Fallback: some intent-model replies wrap the JSON in fences or prose. Extract
 # the first {...} block so a chatty classifier still parses.
 _JSON_BLOCK_RE = re.compile(r"\{[\s\S]*\}")
@@ -183,6 +255,13 @@ def _add_usage(dst: dict[str, int], src: dict[str, int]) -> None:
             dst[k] = dst.get(k, 0) + src[k]
 
 
+def _preview(value: Any, limit: int = 220) -> str:
+    text = str(value or "")
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1] + "..."
+
+
 def _parse_intent(text: str) -> dict[str, Any]:
     """Parse the Intent Detection sub-agent's JSON reply defensively."""
     try:
@@ -214,9 +293,10 @@ async def orchestrate(
 ) -> dict[str, Any]:
     """Run one turn through Intent -> Planner -> Citation.
 
-    Returns a dict with:
+        Returns a dict with:
       - ``answer``: final user-facing text
       - ``usage``: aggregated token totals with a ``by_subagent`` breakdown
+            - ``trail``: execution hops shown in the web UI trail modal
     """
     context_id = context_id or f"ctx-{uuid.uuid4().hex[:12]}"
     persona = persona or PERSONA
@@ -224,6 +304,7 @@ async def orchestrate(
 
     by_subagent: dict[str, dict[str, int]] = {}
     totals: dict[str, int] = {}
+    trail_calls: list[dict[str, Any]] = []
 
     def _record(subagent: str, usage: dict[str, int], span) -> None:
         # Print to stderr so it's visible in the orchestrator/web console even
@@ -236,25 +317,72 @@ async def orchestrate(
         for k, v in usage.items():
             span.set_attribute(f"workiq.{subagent}.{k}", v)
 
+    def _trail(
+        *,
+        tool: str,
+        status: str,
+        duration_ms: float,
+        args: dict[str, Any],
+        result_preview: dict[str, Any] | None = None,
+        error: str | None = None,
+    ) -> None:
+        entry: dict[str, Any] = {
+            "index": len(trail_calls) + 1,
+            "tool": tool,
+            "call_id": f"hop-{len(trail_calls) + 1}",
+            "status": status,
+            "duration_ms": round(duration_ms, 2),
+            "args": args,
+        }
+        if result_preview is not None:
+            entry["result_preview"] = result_preview
+        if error:
+            entry["error"] = error
+        trail_calls.append(entry)
+
     # 1) Intent Detection ----------------------------------------------------
     with telemetry.tracer.start_as_current_span(
         "workiq.orchestrator.intent",
         attributes=span_context_attributes(hop="intent", persona=persona),
     ) as span:
-        intent_msg = await _a2a_send(
-            http, INTENT_URL, question, metadata=meta, context_id=context_id
-        )
+        started = time.perf_counter()
+        try:
+            intent_msg = await _a2a_send(
+                http, INTENT_URL, question, metadata=meta, context_id=context_id
+            )
+        except Exception as exc:
+            _trail(
+                tool="intent-a2a",
+                status="error",
+                duration_ms=(time.perf_counter() - started) * 1000,
+                args={"url": INTENT_URL, "question": _preview(question)},
+                error=str(exc),
+            )
+            raise
         intent_text = _extract_text(intent_msg)
         intent = _parse_intent(intent_text)
-        _record("intent", _extract_usage(intent_msg), span)
+        intent_usage = _extract_usage(intent_msg)
+        _record("intent", intent_usage, span)
         span.set_attribute("workiq.intent.kind", str(intent.get("intent")))
         span.set_attribute("workiq.intent.confidence", float(intent.get("confidence") or 0))
+        _trail(
+            tool="intent-a2a",
+            status="success",
+            duration_ms=(time.perf_counter() - started) * 1000,
+            args={"url": INTENT_URL, "question": _preview(question)},
+            result_preview={
+                "intent": str(intent.get("intent") or "retrieve"),
+                "confidence": float(intent.get("confidence") or 0),
+                "usage_total_tokens": int(intent_usage.get("total_tokens", 0)),
+            },
+        )
 
     # Short-circuit on scope refusal — no need to spin up planner or citation.
     if intent.get("intent") == "refuse":
         return {
             "answer": REFUSAL_SENTENCE,
             "usage": {**totals, "by_subagent": by_subagent},
+            "trail": trail_calls,
         }
 
     # 2) Tool Planner --------------------------------------------------------
@@ -266,20 +394,52 @@ async def orchestrate(
         "workiq.orchestrator.planner",
         attributes=span_context_attributes(hop="planner", persona=persona),
     ) as span:
-        planner_msg = await _a2a_send(
-            http, PLANNER_URL, planner_prompt, metadata=planner_meta, context_id=context_id
-        )
+        started = time.perf_counter()
+        try:
+            planner_msg = await _a2a_send(
+                http, PLANNER_URL, planner_prompt, metadata=planner_meta, context_id=context_id
+            )
+        except Exception as exc:
+            _trail(
+                tool="planner-a2a",
+                status="error",
+                duration_ms=(time.perf_counter() - started) * 1000,
+                args={
+                    "url": PLANNER_URL,
+                    "intent": str(intent.get("intent") or "retrieve"),
+                    "question": _preview(question),
+                },
+                error=str(exc),
+            )
+            raise
         draft = _extract_text(planner_msg)
         citations = _extract_citations(planner_msg)
-        _record("planner", _extract_usage(planner_msg), span)
+        planner_usage = _extract_usage(planner_msg)
+        _record("planner", planner_usage, span)
         span.set_attribute("workiq.planner.citations", len(citations))
         span.set_attribute("workiq.planner.draft_chars", len(draft))
+        _trail(
+            tool="planner-a2a",
+            status="success",
+            duration_ms=(time.perf_counter() - started) * 1000,
+            args={
+                "url": PLANNER_URL,
+                "intent": str(intent.get("intent") or "retrieve"),
+                "question": _preview(question),
+            },
+            result_preview={
+                "draft_preview": _preview(draft),
+                "citations_count": len(citations),
+                "usage_total_tokens": int(planner_usage.get("total_tokens", 0)),
+            },
+        )
 
     # If the planner already emitted the exact refusal sentence, don't re-format.
     if draft.strip() == REFUSAL_SENTENCE:
         return {
             "answer": REFUSAL_SENTENCE,
             "usage": {**totals, "by_subagent": by_subagent},
+            "trail": trail_calls,
         }
 
     # 3) Citation Builder ----------------------------------------------------
@@ -288,12 +448,34 @@ async def orchestrate(
         "workiq.orchestrator.citation",
         attributes=span_context_attributes(hop="citation", persona=persona),
     ) as span:
-        cite_msg = await _a2a_send(
-            http, CITATION_URL, citation_payload, metadata=meta, context_id=context_id
-        )
+        started = time.perf_counter()
+        try:
+            cite_msg = await _a2a_send(
+                http, CITATION_URL, citation_payload, metadata=meta, context_id=context_id
+            )
+        except Exception as exc:
+            _trail(
+                tool="citation-a2a",
+                status="error",
+                duration_ms=(time.perf_counter() - started) * 1000,
+                args={"url": CITATION_URL, "citations_count": len(citations)},
+                error=str(exc),
+            )
+            raise
         final = _extract_text(cite_msg)
-        _record("citation", _extract_usage(cite_msg), span)
+        citation_usage = _extract_usage(cite_msg)
+        _record("citation", citation_usage, span)
         span.set_attribute("workiq.citation.chars", len(final))
+        _trail(
+            tool="citation-a2a",
+            status="success",
+            duration_ms=(time.perf_counter() - started) * 1000,
+            args={"url": CITATION_URL, "citations_count": len(citations)},
+            result_preview={
+                "final_preview": _preview(final),
+                "usage_total_tokens": int(citation_usage.get("total_tokens", 0)),
+            },
+        )
 
     # Roll totals up into the orchestrator's own counters as well so a single
     # backend query on `workiq_*_tokens_total` reflects the full pipeline.
@@ -307,6 +489,7 @@ async def orchestrate(
     return {
         "answer": final or draft,
         "usage": {**totals, "by_subagent": by_subagent},
+        "trail": trail_calls,
     }
 
 
