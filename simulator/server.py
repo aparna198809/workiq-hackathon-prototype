@@ -74,6 +74,7 @@ def ask_work_iq(question: str, fileUrls: list[str] | None = None) -> str:
     """
     result = engine.ask(SCENARIO, question, persona_id=PERSONA)
     payload = {
+        "source": result.get("source", "unknown"),
         "response": result["response"],
         "conversationId": result["conversationId"],
         "citations": result["citations"],

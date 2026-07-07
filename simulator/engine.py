@@ -35,6 +35,9 @@ from typing import Any
 
 import numpy as np
 
+import cache as _cache
+import search_client as _search
+
 
 # --------------------------------------------------------------------------- #
 # Fixture loading
@@ -55,6 +58,34 @@ FIXTURE_FILES: dict[str, str] = {
 
 # Sub-folder (relative to a scenario root) holding the editable Tools tables.
 TABLES_DIR = "tables"
+
+
+# --------------------------------------------------------------------------- #
+# Caching layer
+# --------------------------------------------------------------------------- #
+
+# Global cache instances — initialized once, shared across requests.
+_embedding_cache = _cache.EmbeddingCache(maxsize=10_000)
+_result_cache = _cache.SemanticResultCache(maxsize=500, similarity_threshold=0.88)
+
+
+def _data_version(sc: "Scenario") -> str:
+    """Compute the current data version for cache invalidation."""
+    table_counts = {t: len(rows) for t, rows in sc.tables.items()}
+    latest_ids: list[str] = []
+    if sc.emails:
+        latest_ids.append(sc.emails[-1].get("id", ""))
+    if sc.meetings:
+        latest_ids.append(sc.meetings[-1].get("id", ""))
+    if sc.teams_messages:
+        latest_ids.append(sc.teams_messages[-1].get("id", ""))
+    return _cache.compute_data_version(
+        email_count=len(sc.emails),
+        meeting_count=len(sc.meetings),
+        message_count=len(sc.teams_messages),
+        table_row_counts=table_counts,
+        latest_ids=latest_ids,
+    )
 
 
 @dataclass
@@ -161,7 +192,116 @@ def load_scenario(scenario_dir: str | Path) -> Scenario:
             sc.tables[stem] = rows or []
 
     _build_index(sc)
+
+    # Sync AI Search index with the current scenario data on every load.
+    # This ensures that any changes to the JSON files (new emails, messages, etc.)
+    # are reflected in AI Search when the server restarts.
+    if _search.is_available():
+        count = _search.index_scenario(sc)
+        print(f"[engine] AI Search synced: {count} documents indexed from {root.name}", file=sys.stderr)
+
+    # Start background file watcher to auto-re-index when JSON files change.
+    _start_file_watcher(sc)
+
     return sc
+
+
+# --------------------------------------------------------------------------- #
+# File watcher — auto-re-index on JSON changes (no restart needed)
+# --------------------------------------------------------------------------- #
+
+_watcher_started: set[str] = set()  # track which scenario dirs already have a watcher
+
+
+def _start_file_watcher(sc: Scenario) -> None:
+    """Start a background thread that watches the scenario JSON files for changes.
+    When any file is modified, it reloads the scenario in-place and re-indexes AI Search."""
+    import threading
+
+    scenario_key = str(sc.root)
+    if scenario_key in _watcher_started:
+        return  # already watching this dir
+    if not _search.is_available():
+        return  # no AI Search configured, nothing to sync
+
+    _watcher_started.add(scenario_key)
+
+    def _watch(scenario: Scenario) -> None:
+        """Poll for file modifications and re-index when detected."""
+        import time as _time
+
+        watch_dir = scenario.root
+        # Collect initial modification times
+        last_mtimes: dict[str, float] = {}
+        for f in watch_dir.rglob("*.json"):
+            last_mtimes[str(f)] = f.stat().st_mtime
+
+        while True:
+            _time.sleep(5)  # check every 5 seconds
+            changed = False
+            current_files = list(watch_dir.rglob("*.json"))
+
+            for f in current_files:
+                path_str = str(f)
+                mtime = f.stat().st_mtime
+                if path_str not in last_mtimes or last_mtimes[path_str] < mtime:
+                    changed = True
+                    last_mtimes[path_str] = mtime
+
+            # Detect new files
+            if len(current_files) != len(last_mtimes):
+                changed = True
+                last_mtimes.clear()
+                for f in current_files:
+                    last_mtimes[str(f)] = f.stat().st_mtime
+
+            if changed:
+                print(f"[engine] JSON change detected in {watch_dir.name}, re-indexing...", file=sys.stderr)
+                try:
+                    _reload_scenario_inplace(scenario)
+                    _result_cache.clear()
+                    count = _search.index_scenario(scenario)
+                    print(f"[engine] Re-indexed {count} documents after file change", file=sys.stderr)
+                except Exception as exc:
+                    print(f"[engine] Re-index failed: {exc}", file=sys.stderr)
+
+    thread = threading.Thread(target=_watch, args=(sc,), daemon=True, name="json-watcher")
+    thread.start()
+    print(f"[engine] File watcher started for {sc.root.name} (auto-re-index on JSON changes)", file=sys.stderr)
+
+
+def _reload_scenario_inplace(sc: Scenario) -> None:
+    """Reload all fixture files from disk into an existing Scenario object."""
+    for rel, key in FIXTURE_FILES.items():
+        path = sc.root / rel
+        if not path.exists():
+            continue
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        setattr(sc, key, data.get(key, []))
+
+    # Reload tables
+    tables_path = sc.root / TABLES_DIR
+    if tables_path.is_dir():
+        sc.tables.clear()
+        sc.table_formats.clear()
+        for tf in sorted(tables_path.glob("*.json")):
+            with open(tf, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            stem = tf.stem
+            if isinstance(data, dict):
+                sc.table_formats[stem] = "dict"
+                rows = data.get(stem)
+                if rows is None:
+                    list_keys = [k for k, v in data.items()
+                                 if k != "_comment" and isinstance(v, list)]
+                    rows = data[list_keys[0]] if list_keys else []
+                sc.tables[stem] = rows or []
+            else:
+                sc.table_formats[stem] = "list"
+                sc.tables[stem] = data or []
+
+    _build_index(sc)
 
 
 def _build_index(sc: Scenario) -> None:
@@ -539,9 +679,49 @@ def ask(sc: Scenario, question: str, persona_id: str | None = None) -> dict:
             "tool": golden.get("tool"),
         }
 
-    # No golden match — retrieve, then optionally synthesise with a model.
-    snippets = _all_snippets(sc, persona_id)
-    top = _retrieve(snippets, question)
+    # No golden match — retrieve via AI Search (with cache) or fall back to in-memory.
+    data_ver = _data_version(sc)
+    source_label = "retrieval-only"
+
+    # Step 1: Get query embedding (from cache or compute fresh — avoids redundant API calls)
+    query_vec = _embedding_cache.get(question)
+    if query_vec is None:
+        raw = _get_embeddings([question])
+        if raw is not None:
+            query_vec = raw[0]
+            _embedding_cache.put(question, query_vec)
+
+    # Step 2: Check semantic result cache (handles paraphrases via cosine similarity)
+    top: list[dict] = []
+    if query_vec is not None:
+        cached_results = _result_cache.get(query_vec, persona_id, data_ver)
+        if cached_results is not None:
+            top = cached_results
+            source_label = "cache"
+
+    # Step 3: If cache miss, query AI Search (if configured) or fall back to in-memory
+    if not top:
+        if _search.is_available() and query_vec is not None:
+            top = _search.search(
+                query_embedding=query_vec,
+                question=question,
+                persona_id=persona_id,
+                scenario_name=sc.root.name,
+                k=6,
+            )
+            if top:
+                _result_cache.put(query_vec, persona_id, data_ver, top)
+                source_label = "ai-search"
+        if not top:
+            # Fallback: original in-memory retrieval (no AI Search configured)
+            snippets = _all_snippets(sc, persona_id)
+            top = _retrieve(snippets, question)
+            source_label = "in-memory"
+
+    # Log retrieval source for observability (visible in server terminal)
+    print(f"[engine] ask source={source_label} question={question[:80]!r}", file=sys.stderr)
+
+    # Step 4: Synthesize with LLM if available
     llm = _llm_answer(question, [f"[{s['id']}] {s['text']}" for s in top])
     if llm is not None:
         cited_ids = [s["id"] for s in top]
@@ -551,7 +731,7 @@ def ask(sc: Scenario, question: str, persona_id: str | None = None) -> dict:
             "conversationId": conversation_id,
             "citations": visible,
             "trimmed": [],
-            "source": "llm",
+            "source": f"llm+{source_label}",
             "matched": None,
             "tool": None,
         }
@@ -575,7 +755,7 @@ def ask(sc: Scenario, question: str, persona_id: str | None = None) -> dict:
         "conversationId": conversation_id,
         "citations": visible,
         "trimmed": [],
-        "source": "retrieval-only",
+        "source": source_label,
         "matched": None,
         "tool": None,
     }
@@ -627,7 +807,8 @@ def _next_id(rows: list[dict], prefix: str) -> str:
 
 
 def fetch(sc: Scenario, table: str, filter: dict | None = None) -> list[dict]:
-    """Read rows from a Tools-backed table, optionally filtered by exact field match."""
+    """Read rows from a Tools-backed table, optionally filtered by field match.
+    String comparisons are case-insensitive; other types use exact equality."""
     rows = sc.tables.get(table)
     if rows is None:
         raise ValueError(f"Unknown table: {table}")
@@ -635,7 +816,17 @@ def fetch(sc: Scenario, table: str, filter: dict | None = None) -> list[dict]:
         return list(rows)
     out = []
     for row in rows:
-        if all(row.get(k) == v for k, v in filter.items()):
+        match = True
+        for k, v in filter.items():
+            rv = row.get(k)
+            if isinstance(rv, str) and isinstance(v, str):
+                if rv.lower() != v.lower():
+                    match = False
+                    break
+            elif rv != v:
+                match = False
+                break
+        if match:
             out.append(row)
     return out
 
@@ -689,6 +880,24 @@ def create_entity(
     sc.index[record["id"]] = (_kind_for_table(table), record)
     if persist:
         _persist_table(sc, table)
+
+    # Invalidate search result cache (data changed) and index new row in AI Search
+    _result_cache.clear()
+    if _search.is_available():
+        kind = _kind_for_table(table)
+        fields_text = ", ".join(f"{k}: {v}" for k, v in record.items() if k != "acl")
+        _search.index_single_document({
+            "id": record["id"],
+            "kind": kind,
+            "text": f"{kind.title()} record :: {fields_text}",
+            "title": f"{kind.title()}: {record.get('milestone') or record.get('title') or record.get('name') or record['id']}",
+            "scenario": sc.root.name,
+            "content_source": "direct",
+            "parent_id": "",
+            "source_file": "",
+            "acl": record.get("acl", ["all"]),
+        })
+
     return {"created": True, "row": record}
 
 
@@ -714,5 +923,23 @@ def update_entity(
                     sc.index[new_id] = (kind, row)
             if persist:
                 _persist_table(sc, table)
+
+            # Invalidate search result cache (data changed) and update in AI Search
+            _result_cache.clear()
+            if _search.is_available():
+                kind_label = _kind_for_table(table)
+                fields_text = ", ".join(f"{k}: {v}" for k, v in row.items() if k != "acl")
+                _search.index_single_document({
+                    "id": row["id"],
+                    "kind": kind_label,
+                    "text": f"{kind_label.title()} record :: {fields_text}",
+                    "title": f"{kind_label.title()}: {row.get('milestone') or row.get('title') or row.get('name') or row['id']}",
+                    "scenario": sc.root.name,
+                    "content_source": "direct",
+                    "parent_id": "",
+                    "source_file": "",
+                    "acl": row.get("acl", ["all"]),
+                })
+
             return {"updated": True, "row": row}
     return {"updated": False, "reason": "not_found"}
