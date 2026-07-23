@@ -48,6 +48,54 @@
       "acl": ["ops_director", "quality_pm", "credentialing_lead"],
       "summary": "Joint Commission readiness checklist maintained by Compliance. Tracks medication-management (med-reconciliation policy, CAPA-001), environment of care (CAPA-004), and human-resources/credentialing (provider-onboarding gap CAPA-002, now closed). Outstanding items before the review: CAPA-001 and CAPA-004.",
       "content_excerpt": "Medication Management: revised reconciliation policy — OPEN (CAPA-001). Environment of Care: Westgate documentation — OPEN (CAPA-004). Human Resources/Credentialing: provider-onboarding verification — CLOSED (CAPA-002)."
+    },
+    {
+      "id": "FILE-005",
+      "name": "Vendor Contract Portfolio Summary — Q3 2026.xlsx",
+      "url": "https://northbridge-health.sharepoint.com/sites/VMO/Shared%20Documents/Vendor-Portfolio-Summary-Q3.xlsx",
+      "type": "spreadsheet",
+      "owner": "PPL-011",
+      "date": "2026-07-11T00:00:00Z",
+      "sensitivity": "internal",
+      "acl": ["ops_director", "quality_pm", "vendor_manager"],
+      "summary": "Quarterly vendor contract portfolio summary maintained by the VMO. Covers all four active vendor contracts: Lumina Health Systems (EHR), MediTech Biomedical (equipment), PharmaLink Distributors (supplies), ClearPoint Clinical Solutions (clinical software). Tracks contract value, SLA status, renewal dates, and open commitments per vendor.",
+      "content_excerpt": "Lumina Health Systems | EHR & Clinical Software | $1.2M | Active | SLA Green | Renewal 01-MAR-2027. MediTech Biomedical | Medical Equipment | $340K | Active | SLA Green | Renewal 01-SEP-2026. PharmaLink Distributors | Supplies & Pharmacy | $520K | Active | SLA Amber | Renewal 15-OCT-2026. ClearPoint Clinical Solutions | Clinical Software | $280K | Active | SLA Green | Renewal 01-MAR-2027."
+    },
+    {
+      "id": "FILE-006",
+      "name": "MediTech Biomedical — MSA & SLA Schedule.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/VMO/Contracts/MediTech-MSA-SLA.pdf",
+      "type": "document",
+      "owner": "PPL-011",
+      "date": "2025-09-01T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "vendor_manager"],
+      "summary": "Master Service Agreement and SLA schedule with MediTech Biomedical Inc. Covers biomedical equipment preventive maintenance, calibration, and emergency repair across all Northbridge clinics. SLA: 48-hour response for preventive maintenance, 4-hour response for critical equipment failure. Service credit: 10% of monthly fee per SLA breach. Auto-renewal 01-SEP annually with 60-day notice to terminate.",
+      "content_excerpt": "Section 3 Scope: preventive maintenance and calibration for all biomedical equipment per FDA and Joint Commission standards. Section 7 SLA: 48h response for scheduled maintenance; 4h response for critical equipment (defibrillators, ventilators). Section 8 Service Credits: 10% of monthly fee per calendar month with an SLA breach."
+    },
+    {
+      "id": "FILE-007",
+      "name": "PharmaLink — Distribution Agreement.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/VMO/Contracts/PharmaLink-Distribution-Agreement.pdf",
+      "type": "document",
+      "owner": "PPL-011",
+      "date": "2025-10-15T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "vendor_manager"],
+      "summary": "Distribution agreement with PharmaLink Distributors for clinical supplies and pharmacy distribution. Covers formulary kits, PPE, and controlled-substance audit materials. SLA: 5-business-day delivery for standard orders, 24-hour delivery for urgent orders. Service credit clause 5.2: 5% credit per week of delay on any line item. Renewal 15-OCT annually.",
+      "content_excerpt": "Section 2 Scope: distribution of formulary kits, PPE supplies, and controlled-substance record-keeping materials. Section 5.2 Service Credits: 5% of delayed line-item value per week of delay beyond the committed delivery date. Section 9 Renewal: annual renewal on 15-OCT with 90-day rebid notice."
+    },
+    {
+      "id": "FILE-008",
+      "name": "ClearPoint — Clinical Software License & Support Agreement.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/VMO/Contracts/ClearPoint-License-Agreement.pdf",
+      "type": "document",
+      "owner": "PPL-011",
+      "date": "2026-03-01T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "vendor_manager"],
+      "summary": "License and support agreement with ClearPoint Clinical Solutions for CPOE, lab-order interface, and clinical decision support software. Covers the medication-interaction alerting module required for Joint Commission medication-management compliance. SLA: 99.5% uptime, 2-hour P1 incident response. Appendix C maps features to Joint Commission standards. Renewal 01-MAR-2027.",
+      "content_excerpt": "Section 1 Scope: CPOE module, lab-order HL7 interface, and medication-interaction alerting (clinical decision support). Appendix C: feature-to-standard mapping for Joint Commission medication-management requirements. Section 6 SLA: 99.5% monthly uptime; 2h P1 response, 8h P2 response. Section 10 Renewal: 01-MAR-2027, 120-day notice."
     }
   ]
 }

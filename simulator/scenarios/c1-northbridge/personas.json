@@ -28,6 +28,34 @@
       "person_id": "PPL-008",
       "description": "Least-privilege external vendor. Sees only the Westgate EHR rollout program channel and vendor-facing emails; cannot see internal committee decisions, leadership commercial terms, or HR-sensitive credentialing material.",
       "groups": ["external_vendor"]
+    },
+    {
+      "id": "vendor_manager",
+      "label": "Karen Liu — Vendor/Contract Manager (VMO)",
+      "person_id": "PPL-011",
+      "description": "Vendor management office view. Sees all vendor contracts, SLA performance, commitments, escalations, and commercial terms across all four vendors. Does NOT see HR-sensitive credentialing material.",
+      "groups": ["vendor_management", "procurement"]
+    },
+    {
+      "id": "meditech_vendor",
+      "label": "Rachel Torres — MediTech Biomedical Inc. (Account Manager)",
+      "person_id": "PPL-012",
+      "description": "External vendor contact for MediTech Biomedical. Sees only MediTech-related correspondence, contract (VND-002), and calibration schedules. Cannot see other vendors, internal decisions, commercial terms, or HR material.",
+      "groups": ["external_vendor"]
+    },
+    {
+      "id": "pharmalink_vendor",
+      "label": "Steve Nakamura — PharmaLink Distributors (Regional Manager)",
+      "person_id": "PPL-013",
+      "description": "External vendor contact for PharmaLink Distributors. Sees only PharmaLink-related correspondence, contract (VND-003), and supply chain updates. Cannot see other vendors, internal decisions, commercial terms, or HR material.",
+      "groups": ["external_vendor"]
+    },
+    {
+      "id": "clearpoint_vendor",
+      "label": "Lisa Chen — ClearPoint Clinical Solutions (Account Director)",
+      "person_id": "PPL-014",
+      "description": "External vendor contact for ClearPoint Clinical Solutions. Sees only ClearPoint-related correspondence, contract (VND-004), and CPOE upgrade status. Cannot see other vendors, internal decisions, commercial terms, or HR material.",
+      "groups": ["external_vendor"]
     }
   ]
 }

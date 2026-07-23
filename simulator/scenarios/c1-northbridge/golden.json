@@ -85,6 +85,59 @@
       "restricted_citations": ["EML-003"],
       "required_sources": 3,
       "tool": "draft_document"
+    },
+    {
+      "id": "Q9",
+      "tier": "agent-automation",
+      "question": "Generate the weekly vendor and commitment status report across all active vendor contracts.",
+      "keywords": ["weekly vendor", "commitment status", "vendor contracts", "SLA", "open commitments"],
+      "answer": "Weekly Vendor & Commitment Status — Week of 14-JUL-2026:\n\n1. Lumina Health Systems (EHR & Clinical Software) — SLA: GREEN\n   Contract: $1.2M Implementation & Support MSA\n   Status: Westgate go-live completed 22-JUN on schedule. Post-go-live support active through 22-JUL.\n   Open commitments: 0. No SLA breaches.\n\n2. MediTech Biomedical (Medical & Biomedical Equipment) — SLA: GREEN\n   Contract: $340K Preventive Maintenance & Calibration MSA\n   Status: Riverside calibrations complete. Westgate patient-monitor calibration scheduled 14-JUL, autoclave validation 18-JUL.\n   Open commitments: 2. Calibration certificates due within 48h of service (by 20-JUL).\n   Renewal: MSA auto-renews 01-SEP — recommend tighter 24h SLA at renewal.\n\n3. PharmaLink Distributors (Clinical Supplies & Pharmacy) — SLA: AMBER\n   Contract: $520K Distribution Agreement\n   Status: Controlled-substance audit log binders delayed to 16-JUL (was 11-JUL). All other Q3 deliveries on schedule.\n   Open commitments: 1. SLA clause 5.2 (5% credit per week of delay) in play if 16-JUL slips.\n   Renewal: 15-OCT — rebid of controlled-substance segment recommended.\n\n4. ClearPoint Clinical Solutions (Clinical Software — CPOE & Lab) — SLA: GREEN\n   Contract: $280K License & Support Agreement\n   Status: CPOE v4.2 patch in vendor QA. Staging deployment 17-JUL, production cutover 21-JUL.\n   Open commitments: 2. HL7 feed activation pending (due 15-JUL); v4.2 medication-interaction alerting confirmed for JC compliance.\n\nOverall: 1 amber (PharmaLink minor delay), 0 SLA breaches, 5 open commitments across 4 vendors.",
+      "citations": ["VND-001", "VND-002", "VND-003", "VND-004", "EML-013", "MSG-006", "MTG-005"],
+      "restricted_citations": [],
+      "required_sources": 3,
+      "tool": "generate_report"
+    },
+    {
+      "id": "Q10",
+      "tier": "agent-automation",
+      "question": "Generate the Joint Commission readiness report focusing on vendor-related compliance items.",
+      "keywords": ["Joint Commission readiness", "vendor compliance", "readiness report", "compliance items", "calibration", "medication management", "equipment"],
+      "answer": "Joint Commission Readiness Report — Vendor Compliance Items (as of 14-JUL-2026):\n\n1. Medication Management (Joint Commission Standard MM)\n   a. Lumina Health Systems: Westgate EHR medication-list data migration validated and signed off. GO.\n   b. PharmaLink Distributors: Controlled-substance audit log binders delayed to 16-JUL — needed for pharmacy audit cycle (due 25-JUL). AT RISK if delayed further.\n   c. ClearPoint Clinical Solutions: CPOE v4.2 medication-interaction alerting module confirmed to meet JC medication-management standards (Appendix C). Deployment 21-JUL — before survey window. ON TRACK.\n\n2. Environment of Care — Equipment (Joint Commission Standard EC)\n   a. MediTech Biomedical: Westgate patient-monitor calibration (12 units) scheduled 14-JUL. Autoclave validation scheduled 18-JUL. Calibration certificates required by 20-JUL. ON TRACK.\n   b. Riverside clinic: All defibrillator and infusion-pump calibrations complete. GO.\n\n3. Human Resources / Credentialing\n   a. Provider-onboarding gap (CAPA-002): CLOSED (05-JUN). GO.\n\n4. Open CAPAs on Critical Path\n   a. CAPA-001 (medication-reconciliation policy): Past due — not vendor-dependent but affects medication-management readiness.\n   b. CAPA-004 (environment-of-care documentation): Past due — blocked on facilities vendor quote for signage.\n\nVendor Readiness Summary: 3 of 4 vendors GREEN, 1 AMBER (PharmaLink). All vendor-dependent JC items on track for completion before survey window, contingent on PharmaLink 16-JUL delivery and MediTech 18-JUL autoclave validation.",
+      "citations": ["VND-001", "VND-002", "VND-003", "VND-004", "FILE-004", "EML-007", "EML-008", "EML-009", "EML-011", "MSG-010", "CAPA-001", "CAPA-004"],
+      "restricted_citations": [],
+      "required_sources": 4,
+      "tool": "generate_report"
+    },
+    {
+      "id": "Q11",
+      "tier": "single-signal",
+      "question": "What is the current status of the MediTech Biomedical contract and what are the open commitments?",
+      "keywords": ["MediTech Biomedical", "contract", "status", "calibration", "commitments"],
+      "answer": "MediTech Biomedical Inc. holds a $340K Preventive Maintenance & Calibration MSA (category: Medical & Biomedical Equipment). Current SLA status is Green. Two open commitments remain: (1) Westgate patient-monitor bank calibration (12 units) scheduled for 14-JUL, and (2) autoclave validation scheduled for 18-JUL. Both are Joint Commission critical-path items. Calibration certificates are expected within 48 hours of each service visit (filed by 20-JUL). The MSA auto-renews on 01-SEP — the team recommends renewal with a tighter 24h SLA (currently 48h for preventive maintenance). Service credit clause: 10% of monthly fee per calendar month with an SLA breach. Riverside clinic calibrations (defibrillators, infusion pumps) are already complete.",
+      "citations": ["VND-002", "EML-007", "EML-008", "FILE-006"],
+      "restricted_citations": ["FILE-006"],
+      "required_sources": 2
+    },
+    {
+      "id": "Q12",
+      "tier": "multi-signal",
+      "question": "Which vendor contracts are coming up for renewal and what actions has procurement recommended?",
+      "keywords": ["vendor contracts", "renewal", "procurement", "recommended actions"],
+      "answer": "Three vendor contract renewals are on the Q3-Q4 horizon:\n\n1. MediTech Biomedical MSA — renews 01-SEP-2026 (auto-renewal, 60-day notice window already open since 03-JUL). Procurement recommendation: renew with updated SLA terms — reduce preventive-maintenance response from 48h to 24h. Performance has been solid.\n\n2. PharmaLink Distribution Agreement — renews 15-OCT-2026 (90-day rebid notice). Procurement recommendation: rebid the controlled-substance distribution segment given recent delivery delays (twice this year), while keeping the formulary-kit line with PharmaLink.\n\n3. ClearPoint License & Support — renews 01-MAR-2027 (120-day notice). No immediate action required, but procurement recommends flagging v4.2 upgrade performance data for the renewal negotiation.\n\nLumina Health Systems is also on a fixed-term MSA ending 01-MAR-2027 with 120-day notice — no action needed now.",
+      "citations": ["EML-014", "MSG-008", "VND-002", "VND-003", "VND-004", "MTG-005"],
+      "restricted_citations": ["EML-014"],
+      "required_sources": 2
+    },
+    {
+      "id": "Q13",
+      "tier": "agent-mcp-tools",
+      "question": "Are there any new action items from the latest meetings that should be reflected in the CAPA tracker? Compare against existing open items and tell me what you recommend.",
+      "keywords": ["new action items", "latest meetings", "recent meetings", "CAPA tracker", "action tracker", "compare", "existing open items", "open items", "recommend", "updates", "new entries", "meeting actions", "should be added", "should be reflected"],
+      "answer": "Comparing action items from the latest meetings (MTG-005 Monthly Vendor Performance Review, 10-JUL and MTG-006 Emergency Quality Review, 18-JUL) against the current CAPA tracker:\n\n**Recommended updates to existing CAPAs:**\n1. CAPA-001 (medication-reconciliation policy) — Currently status: Flagged. Per MTG-006, Angela confirmed the policy draft is complete but awaiting legal sign-off. Recommend: change status from Flagged to Open, update due_date to 2026-07-25.\n\n**Recommended new CAPA entries:**\n1. NEW — PharmaLink supply-chain compliance audit (from MTG-006 action item AI-601). Owner: Karen Liu (PPL-011). Due: 2026-07-30. The emergency review decided this is needed due to repeated controlled-substance delivery delays.\n2. NEW — MediTech calibration certificate tracking (from MTG-005 action item AI-501). Owner: Karen Liu (PPL-011). Due: 2026-07-20. Critical for Joint Commission equipment readiness.\n\n**Already tracked (no action needed):**\n- CAPA-003 (Westgate medication-list migration) — already Open, owner Greg Sullivan.\n- CAPA-004 (environment-of-care documentation) — already Flagged, owner Priya Raman.\n\nSummary: 1 existing CAPA needs a status/date update, and 2 new CAPAs should be created.",
+      "citations": ["MTG-005", "MTG-006", "CAPA-001", "CAPA-003", "CAPA-004", "AI-601", "AI-501"],
+      "restricted_citations": [],
+      "required_sources": 3,
+      "tool": "update_entity"
     }
   ]
 }
