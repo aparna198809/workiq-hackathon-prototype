@@ -2010,6 +2010,12 @@ form.addEventListener('submit', async (e) => {
     let answer = ((data && data.answer) || raw || '(no answer)').replace(/https:\/\/simulator\.local\//g, '/citation/');
     placeholder.innerHTML = marked.parse(answer);
     placeholder.querySelectorAll('a[href^="/citation/"]').forEach(a => a.target = '_blank');
+    placeholder.querySelectorAll('a[href^="/download/report/"]').forEach(a => {
+      a.target = '_blank';
+      a.setAttribute('download', '');
+      a.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;padding:6px 14px;border-radius:6px;text-decoration:none;font-weight:600;margin:8px 0;';
+      a.innerHTML = '\u2B07 ' + a.textContent;
+    });
 
     if (!s.trails) s.trails = {};
     const trailEntry = {
@@ -2241,6 +2247,26 @@ async def pwa_icon() -> Response:
       path=PWA_ICON_PATH,
       media_type="image/svg+xml",
       headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
+@app.get("/download/report/{filename}")
+async def download_report(filename: str, request: Request):
+    """Serve a generated report file for download."""
+    auth = _require_browser_auth(request)
+    if auth is not None:
+        return auth
+    # Sanitize filename to prevent path traversal
+    safe_name = Path(filename).name
+    if safe_name != filename or ".." in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    report_path = REPO_ROOT / "simulator" / "reports" / safe_name
+    if not report_path.exists():
+        raise HTTPException(status_code=404, detail=f"Report {safe_name} not found")
+    return FileResponse(
+        path=report_path,
+        filename=safe_name,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
 

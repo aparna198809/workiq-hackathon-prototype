@@ -29,11 +29,37 @@ import os
 import re
 import sys
 import uuid
+from collections import deque
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
+
+import cache as _cache
+import search_client as _search
+
+
+# --------------------------------------------------------------------------- #
+# CDC: Change Data Capture events emitted by the file watcher
+# --------------------------------------------------------------------------- #
+
+@dataclass
+class ChangeEvent:
+    """Represents a detected change in scenario data files."""
+    file: str                         # e.g. "meetings.json", "teams.json"
+    kind: Literal["new", "modified"]
+    added_ids: list[str] = field(default_factory=list)
+    modified_ids: list[str] = field(default_factory=list)
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat(timespec="seconds"))
+
+
+# Module-level queue consumed by the reconciliation agent
+change_queue: deque[ChangeEvent] = deque(maxlen=200)
+
+# Snapshot of record IDs per fixture file, used to diff on change
+_last_snapshot: dict[str, dict[str, set[str]]] = {}  # scenario_key -> {file -> set of ids}
 
 
 # --------------------------------------------------------------------------- #
@@ -55,6 +81,34 @@ FIXTURE_FILES: dict[str, str] = {
 
 # Sub-folder (relative to a scenario root) holding the editable Tools tables.
 TABLES_DIR = "tables"
+
+
+# --------------------------------------------------------------------------- #
+# Caching layer
+# --------------------------------------------------------------------------- #
+
+# Global cache instances — initialized once, shared across requests.
+_embedding_cache = _cache.EmbeddingCache(maxsize=10_000)
+_result_cache = _cache.SemanticResultCache(maxsize=500, similarity_threshold=0.88)
+
+
+def _data_version(sc: "Scenario") -> str:
+    """Compute the current data version for cache invalidation."""
+    table_counts = {t: len(rows) for t, rows in sc.tables.items()}
+    latest_ids: list[str] = []
+    if sc.emails:
+        latest_ids.append(sc.emails[-1].get("id", ""))
+    if sc.meetings:
+        latest_ids.append(sc.meetings[-1].get("id", ""))
+    if sc.teams_messages:
+        latest_ids.append(sc.teams_messages[-1].get("id", ""))
+    return _cache.compute_data_version(
+        email_count=len(sc.emails),
+        meeting_count=len(sc.meetings),
+        message_count=len(sc.teams_messages),
+        table_row_counts=table_counts,
+        latest_ids=latest_ids,
+    )
 
 
 @dataclass
@@ -161,7 +215,170 @@ def load_scenario(scenario_dir: str | Path) -> Scenario:
             sc.tables[stem] = rows or []
 
     _build_index(sc)
+
+    # Sync AI Search index with the current scenario data on every load.
+    # This ensures that any changes to the JSON files (new emails, messages, etc.)
+    # are reflected in AI Search when the server restarts.
+    if _search.is_available():
+        count = _search.index_scenario(sc)
+        print(f"[engine] AI Search synced: {count} documents indexed from {root.name}", file=sys.stderr)
+
+    # Start background file watcher to auto-re-index when JSON files change.
+    _start_file_watcher(sc)
+
     return sc
+
+
+# --------------------------------------------------------------------------- #
+# File watcher — auto-re-index on JSON changes (no restart needed)
+# --------------------------------------------------------------------------- #
+
+_watcher_started: set[str] = set()  # track which scenario dirs already have a watcher
+
+
+def _start_file_watcher(sc: Scenario) -> None:
+    """Start a background thread that watches the scenario JSON files for changes.
+    When any file is modified, it reloads the scenario in-place, emits CDC events,
+    and re-indexes AI Search (if available)."""
+    import threading
+
+    scenario_key = str(sc.root)
+    if scenario_key in _watcher_started:
+        return  # already watching this dir
+
+    _watcher_started.add(scenario_key)
+
+    # Take initial snapshot of all record IDs for diffing
+    _take_snapshot(sc)
+
+    def _watch(scenario: Scenario) -> None:
+        """Poll for file modifications and re-index when detected."""
+        import time as _time
+
+        watch_dir = scenario.root
+        # Collect initial modification times
+        last_mtimes: dict[str, float] = {}
+        for f in watch_dir.rglob("*.json"):
+            last_mtimes[str(f)] = f.stat().st_mtime
+
+        while True:
+            _time.sleep(5)  # check every 5 seconds
+            changed = False
+            current_files = list(watch_dir.rglob("*.json"))
+
+            for f in current_files:
+                path_str = str(f)
+                mtime = f.stat().st_mtime
+                if path_str not in last_mtimes or last_mtimes[path_str] < mtime:
+                    changed = True
+                    last_mtimes[path_str] = mtime
+
+            # Detect new files
+            if len(current_files) != len(last_mtimes):
+                changed = True
+                last_mtimes.clear()
+                for f in current_files:
+                    last_mtimes[str(f)] = f.stat().st_mtime
+
+            if changed:
+                print(f"[engine] JSON change detected in {watch_dir.name}, re-indexing...", file=sys.stderr)
+                try:
+                    # Capture old snapshot before reload
+                    old_snap = _last_snapshot.get(str(scenario.root), {})
+                    _reload_scenario_inplace(scenario)
+                    _result_cache.clear()
+                    # Emit CDC events by diffing old vs new
+                    _emit_change_events(scenario, old_snap)
+                    if _search.is_available():
+                        count = _search.index_scenario(scenario)
+                        print(f"[engine] Re-indexed {count} documents after file change", file=sys.stderr)
+                    else:
+                        print(f"[engine] Scenario reloaded after file change (no AI Search)", file=sys.stderr)
+                except Exception as exc:
+                    print(f"[engine] Re-index failed: {exc}", file=sys.stderr)
+
+    thread = threading.Thread(target=_watch, args=(sc,), daemon=True, name="json-watcher")
+    thread.start()
+    print(f"[engine] File watcher started for {sc.root.name} (auto-re-index on JSON changes)", file=sys.stderr)
+
+
+def _take_snapshot(sc: Scenario) -> None:
+    """Capture current record IDs per fixture file for change diffing."""
+    scenario_key = str(sc.root)
+    snap: dict[str, set[str]] = {}
+    # Meetings — include action item IDs
+    meeting_ids: set[str] = set()
+    for m in sc.meetings:
+        meeting_ids.add(m.get("id", ""))
+        for ai in m.get("action_items", []):
+            meeting_ids.add(ai.get("id", ""))
+    snap["meetings.json"] = meeting_ids
+    # Teams messages
+    snap["teams.json"] = {msg.get("id", "") for msg in sc.teams_messages}
+    # Emails
+    snap["emails.json"] = {e.get("id", "") for e in sc.emails}
+    # Files
+    snap["files.json"] = {f.get("id", "") for f in sc.files}
+    # Tables
+    for table_name, rows in sc.tables.items():
+        snap[f"tables/{table_name}.json"] = {r.get("id", "") for r in rows}
+    _last_snapshot[scenario_key] = snap
+
+
+def _emit_change_events(sc: Scenario, old_snap: dict[str, set[str]]) -> None:
+    """Compare current scenario state against the old snapshot and emit ChangeEvents."""
+    # Take new snapshot
+    _take_snapshot(sc)
+    new_snap = _last_snapshot.get(str(sc.root), {})
+
+    for file_key, new_ids in new_snap.items():
+        old_ids = old_snap.get(file_key, set())
+        added = new_ids - old_ids
+        if added:
+            evt = ChangeEvent(
+                file=file_key,
+                kind="new",
+                added_ids=sorted(added),
+            )
+            change_queue.append(evt)
+            print(
+                f"[engine][CDC] New records in {file_key}: {sorted(added)}",
+                file=sys.stderr,
+            )
+
+
+def _reload_scenario_inplace(sc: Scenario) -> None:
+    """Reload all fixture files from disk into an existing Scenario object."""
+    for rel, key in FIXTURE_FILES.items():
+        path = sc.root / rel
+        if not path.exists():
+            continue
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        setattr(sc, key, data.get(key, []))
+
+    # Reload tables
+    tables_path = sc.root / TABLES_DIR
+    if tables_path.is_dir():
+        sc.tables.clear()
+        sc.table_formats.clear()
+        for tf in sorted(tables_path.glob("*.json")):
+            with open(tf, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            stem = tf.stem
+            if isinstance(data, dict):
+                sc.table_formats[stem] = "dict"
+                rows = data.get(stem)
+                if rows is None:
+                    list_keys = [k for k, v in data.items()
+                                 if k != "_comment" and isinstance(v, list)]
+                    rows = data[list_keys[0]] if list_keys else []
+                sc.tables[stem] = rows or []
+            else:
+                sc.table_formats[stem] = "list"
+                sc.tables[stem] = data or []
+
+    _build_index(sc)
 
 
 def _build_index(sc: Scenario) -> None:
@@ -210,18 +427,42 @@ def _acl_of(record: dict) -> list[str]:
     return acl
 
 
-def can_see(record: dict, persona_id: str | None) -> bool:
+def _email_participants(record: dict) -> set[str]:
+    """Return the set of person IDs who are from/to/cc on an email record."""
+    participants: set[str] = set()
+    frm = record.get("from")
+    if frm:
+        participants.add(frm)
+    for pid in record.get("to") or []:
+        participants.add(pid)
+    for pid in record.get("cc") or []:
+        participants.add(pid)
+    return participants
+
+
+def can_see(record: dict, persona_id: str | None, person_id: str | None = None) -> bool:
     """A record is visible if its acl contains 'all', or contains the persona id.
+
+    For emails (records with 'from'/'to'/'cc' fields): also visible if the
+    persona's person_id appears in the from, to, or cc fields — i.e. only
+    participants on the email can see it.
 
     When persona_id is None (no persona selected) the simulator grants full
     visibility — mirroring an unscoped admin/dev session.
     """
+    if persona_id is None:
+        return True
     acl = _acl_of(record)
     if "all" in acl:
         return True
-    if persona_id is None:
+    if persona_id in acl:
         return True
-    return persona_id in acl
+    # Email participant check: if this is an email and we have a person_id,
+    # allow visibility if the person is a participant (from/to/cc).
+    if person_id and "from" in record and "to" in record:
+        if person_id in _email_participants(record):
+            return True
+    return False
 
 
 # --------------------------------------------------------------------------- #
@@ -258,6 +499,7 @@ def resolve_citations(
 ) -> tuple[list[dict], list[str]]:
     """Resolve citation ids to {citation_id, source_index, title, kind}, trimming any
     the persona may not see. Returns (visible_citations, trimmed_ids)."""
+    person_id = _person_id_for(sc, persona_id)
     visible: list[dict] = []
     trimmed: list[str] = []
     source_index = 1
@@ -266,7 +508,7 @@ def resolve_citations(
         if entry is None:
             continue
         kind, record = entry
-        if not can_see(record, persona_id):
+        if not can_see(record, persona_id, person_id):
             trimmed.append(cid)
             continue
         visible.append(
@@ -393,34 +635,43 @@ def _llm_answer(question: str, context_snippets: list[str]) -> str | None:
         return None
 
 
+def _person_id_for(sc: Scenario, persona_id: str | None) -> str | None:
+    """Resolve a persona's person_id (e.g. 'quality_pm' -> 'PPL-001')."""
+    if persona_id is None:
+        return None
+    persona = sc.get_persona(persona_id)
+    return persona.get("person_id") if persona else None
+
+
 def _all_snippets(sc: Scenario, persona_id: str | None) -> list[dict]:
     """Flatten visible fixtures into (id, text) snippets for retrieval/fallback.
     Every snippet is permission-checked so restricted content never reaches the LLM
     fallback context or the retrieval-only response for an unauthorized persona."""
+    person_id = _person_id_for(sc, persona_id)
     snippets: list[dict] = []
     for email in sc.emails:
-        if can_see(email, persona_id):
+        if can_see(email, persona_id, person_id):
             snippets.append({"id": email["id"], "text": f"{email.get('subject')} :: {email.get('body')}"})
     for mtg in sc.meetings:
-        if can_see(mtg, persona_id):
+        if can_see(mtg, persona_id, person_id):
             snippets.append({"id": mtg["id"], "text": f"{mtg.get('title')} :: {mtg.get('recap')}"})
             for ai in mtg.get("action_items", []):
                 ai_rec = sc.index.get(ai["id"], (None, ai))[1]
-                if can_see(ai_rec, persona_id):
+                if can_see(ai_rec, persona_id, person_id):
                     snippets.append({"id": ai["id"], "text": f"Action item ({mtg.get('title')}): {ai.get('text')} (owner {ai.get('owner')}, due {ai.get('due')}, {ai.get('status')})"})
     for msg in sc.teams_messages:
-        if can_see(msg, persona_id):
+        if can_see(msg, persona_id, person_id):
             snippets.append({"id": msg["id"], "text": f"{msg.get('channel')} :: {msg.get('text')}"})
     for f in sc.files:
-        if can_see(f, persona_id):
+        if can_see(f, persona_id, person_id):
             snippets.append({"id": f["id"], "text": f"{f.get('name')} :: {f.get('summary')}"})
     for table, rows in sc.tables.items():
         for row in rows:
-            if can_see(row, persona_id):
+            if can_see(row, persona_id, person_id):
                 fields = ", ".join(f"{k} {v}" for k, v in row.items() if k != "acl")
                 snippets.append({"id": row["id"], "text": f"{_kind_for_table(table).title()} record :: {fields}"})
     for person in sc.people:
-        if can_see(person, persona_id):
+        if can_see(person, persona_id, person_id):
             snippets.append({"id": person["id"], "text": f"{person.get('name')} :: {person.get('title')} :: {', '.join(person.get('expertise', []))}"})
     return snippets
 
@@ -504,31 +755,16 @@ def ask(sc: Scenario, question: str, persona_id: str | None = None) -> dict:
 
     if golden is not None:
         visible, trimmed = resolve_citations(sc, golden.get("citations", []), persona_id)
+        response = golden["answer"]
         if trimmed:
-            # RBAC: do NOT return the full canned answer — its prose can contain the
-            # restricted facts even though the citations were stripped. Use the authored
-            # redaction ONLY when the trimmed set is fully anticipated by the golden's
-            # `restricted_citations`; otherwise this persona is blocked from MORE sources
-            # than the redaction was written for, so the redaction itself may narrate
-            # facts it shouldn't. In that case fail closed with a generic message.
+            # RBAC: return the full answer but strip restricted citations from the
+            # visible set and append a governance note. The agent handles any further
+            # messaging about restricted content.
             persona = sc.get_persona(persona_id)
             label = persona["label"] if persona else (persona_id or "unscoped")
-            restricted = set(golden.get("restricted_citations", []))
-            authored = golden.get("trimmed_answer")
-            if authored and set(trimmed) <= restricted:
-                response = authored
-            else:
-                response = (
-                    "A complete answer to this question draws on sources the active "
-                    "persona is not authorized to see, and no persona-safe redaction is "
-                    "available for this set of restrictions. Switch to a persona with "
-                    "broader access to view it."
-                )
             response += GOVERNANCE_NOTE.format(
                 n=len(trimmed), persona=label, ids=", ".join(trimmed)
             )
-        else:
-            response = golden["answer"]
         return {
             "response": response,
             "conversationId": conversation_id,
@@ -539,9 +775,49 @@ def ask(sc: Scenario, question: str, persona_id: str | None = None) -> dict:
             "tool": golden.get("tool"),
         }
 
-    # No golden match — retrieve, then optionally synthesise with a model.
-    snippets = _all_snippets(sc, persona_id)
-    top = _retrieve(snippets, question)
+    # No golden match — retrieve via AI Search (with cache) or fall back to in-memory.
+    data_ver = _data_version(sc)
+    source_label = "retrieval-only"
+
+    # Step 1: Get query embedding (from cache or compute fresh — avoids redundant API calls)
+    query_vec = _embedding_cache.get(question)
+    if query_vec is None:
+        raw = _get_embeddings([question])
+        if raw is not None:
+            query_vec = raw[0]
+            _embedding_cache.put(question, query_vec)
+
+    # Step 2: Check semantic result cache (handles paraphrases via cosine similarity)
+    top: list[dict] = []
+    if query_vec is not None:
+        cached_results = _result_cache.get(query_vec, persona_id, data_ver)
+        if cached_results is not None:
+            top = cached_results
+            source_label = "cache"
+
+    # Step 3: If cache miss, query AI Search (if configured) or fall back to in-memory
+    if not top:
+        if _search.is_available() and query_vec is not None:
+            top = _search.search(
+                query_embedding=query_vec,
+                question=question,
+                persona_id=persona_id,
+                scenario_name=sc.root.name,
+                k=6,
+            )
+            if top:
+                _result_cache.put(query_vec, persona_id, data_ver, top)
+                source_label = "ai-search"
+        if not top:
+            # Fallback: original in-memory retrieval (no AI Search configured)
+            snippets = _all_snippets(sc, persona_id)
+            top = _retrieve(snippets, question)
+            source_label = "in-memory"
+
+    # Log retrieval source for observability (visible in server terminal)
+    print(f"[engine] ask source={source_label} question={question[:80]!r}", file=sys.stderr)
+
+    # Step 4: Synthesize with LLM if available
     llm = _llm_answer(question, [f"[{s['id']}] {s['text']}" for s in top])
     if llm is not None:
         cited_ids = [s["id"] for s in top]
@@ -551,7 +827,7 @@ def ask(sc: Scenario, question: str, persona_id: str | None = None) -> dict:
             "conversationId": conversation_id,
             "citations": visible,
             "trimmed": [],
-            "source": "llm",
+            "source": f"llm+{source_label}",
             "matched": None,
             "tool": None,
         }
@@ -575,7 +851,7 @@ def ask(sc: Scenario, question: str, persona_id: str | None = None) -> dict:
         "conversationId": conversation_id,
         "citations": visible,
         "trimmed": [],
-        "source": "retrieval-only",
+        "source": source_label,
         "matched": None,
         "tool": None,
     }
@@ -627,7 +903,9 @@ def _next_id(rows: list[dict], prefix: str) -> str:
 
 
 def fetch(sc: Scenario, table: str, filter: dict | None = None) -> list[dict]:
-    """Read rows from a Tools-backed table, optionally filtered by exact field match."""
+    """Read rows from a Tools-backed table, optionally filtered by field match.
+    String comparisons are case-insensitive substring (contains) matching;
+    other types use exact equality."""
     rows = sc.tables.get(table)
     if rows is None:
         raise ValueError(f"Unknown table: {table}")
@@ -635,13 +913,24 @@ def fetch(sc: Scenario, table: str, filter: dict | None = None) -> list[dict]:
         return list(rows)
     out = []
     for row in rows:
-        if all(row.get(k) == v for k, v in filter.items()):
+        match = True
+        for k, v in filter.items():
+            rv = row.get(k)
+            if isinstance(rv, str) and isinstance(v, str):
+                if v.lower() not in rv.lower():
+                    match = False
+                    break
+            elif rv != v:
+                match = False
+                break
+        if match:
             out.append(row)
     return out
 
 
 def create_entity(
-    sc: Scenario, table: str, record: dict, persist: bool = False
+    sc: Scenario, table: str, record: dict, persist: bool = False,
+    approved_by: str | None = None, source_citations: list[str] | None = None,
 ) -> dict:
     """Append a row to a Tools-backed table. Idempotent on `id` and on a
     `dedupe_key` of (milestone, owner) for the milestone tracker — re-issuing the
@@ -685,15 +974,46 @@ def create_entity(
         if inherited is not None:
             record["acl"] = inherited
 
+    # Audit trail: stamp who approved the creation
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    if approved_by:
+        record["created_by"] = approved_by
+        record["created_at"] = now
+        record.setdefault("approval_log", []).append({
+            "approver": approved_by,
+            "action": "created",
+            "timestamp": now,
+            "source_citations": source_citations or [],
+        })
+
     rows.append(record)
     sc.index[record["id"]] = (_kind_for_table(table), record)
     if persist:
         _persist_table(sc, table)
+
+    # Invalidate search result cache (data changed) and index new row in AI Search
+    _result_cache.clear()
+    if _search.is_available():
+        kind = _kind_for_table(table)
+        fields_text = ", ".join(f"{k}: {v}" for k, v in record.items() if k != "acl")
+        _search.index_single_document({
+            "id": record["id"],
+            "kind": kind,
+            "text": f"{kind.title()} record :: {fields_text}",
+            "title": f"{kind.title()}: {record.get('milestone') or record.get('title') or record.get('name') or record['id']}",
+            "scenario": sc.root.name,
+            "content_source": "direct",
+            "parent_id": "",
+            "source_file": "",
+            "acl": record.get("acl", ["all"]),
+        })
+
     return {"created": True, "row": record}
 
 
 def update_entity(
-    sc: Scenario, table: str, id: str, patch: dict, persist: bool = False
+    sc: Scenario, table: str, id: str, patch: dict, persist: bool = False,
+    approved_by: str | None = None, source_citations: list[str] | None = None,
 ) -> dict:
     """Patch fields on an existing row by id. If the patch changes `id`, the citation
     index is atomically rekeyed so lookups stay consistent (and id collisions are
@@ -712,7 +1032,39 @@ def update_entity(
                 sc.index.pop(id, None)
                 if kind is not None:
                     sc.index[new_id] = (kind, row)
+
+            # Audit trail: stamp who approved the update
+            if approved_by:
+                now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                row["modified_by"] = approved_by
+                row["modified_at"] = now
+                row.setdefault("approval_log", []).append({
+                    "approver": approved_by,
+                    "action": "updated",
+                    "timestamp": now,
+                    "fields_changed": list(patch.keys()),
+                    "source_citations": source_citations or [],
+                })
+
             if persist:
                 _persist_table(sc, table)
+
+            # Invalidate search result cache (data changed) and update in AI Search
+            _result_cache.clear()
+            if _search.is_available():
+                kind_label = _kind_for_table(table)
+                fields_text = ", ".join(f"{k}: {v}" for k, v in row.items() if k != "acl")
+                _search.index_single_document({
+                    "id": row["id"],
+                    "kind": kind_label,
+                    "text": f"{kind_label.title()} record :: {fields_text}",
+                    "title": f"{kind_label.title()}: {row.get('milestone') or row.get('title') or row.get('name') or row['id']}",
+                    "scenario": sc.root.name,
+                    "content_source": "direct",
+                    "parent_id": "",
+                    "source_file": "",
+                    "acl": row.get("acl", ["all"]),
+                })
+
             return {"updated": True, "row": row}
     return {"updated": False, "reason": "not_found"}

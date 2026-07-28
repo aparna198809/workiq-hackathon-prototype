@@ -61,6 +61,24 @@
         {"id": "AI-401", "text": "Complete and validate the Westgate medication-list data migration", "owner": "PPL-010", "due": "2026-06-13", "status": "open"},
         {"id": "AI-402", "text": "Obtain written go-live date confirmation from Lumina Health Systems", "owner": "PPL-004", "due": "2026-06-11", "status": "open"}
       ]
+    },
+    {
+      "id": "MTG-005",
+      "title": "Monthly Vendor Performance Review",
+      "committee": "vendor_review",
+      "date": "2026-07-10T15:00:00Z",
+      "organizer": "PPL-011",
+      "attendees": ["PPL-011", "PPL-002", "PPL-015", "PPL-007", "PPL-001"],
+      "acl": ["ops_director", "quality_pm", "vendor_manager"],
+      "recap": "Monthly vendor performance review (10-JUL). Four active vendor contracts reviewed:\n\n1. Lumina Health Systems (EHR): Westgate go-live completed on 22-JUN as planned. Post-go-live support period ends 22-JUL. SLA compliance: 100% — no incidents. No action required.\n\n2. MediTech Biomedical (Equipment): Riverside calibrations complete. Westgate patient-monitor calibration scheduled 14-JUL, autoclave validation 18-JUL. Both are Joint Commission critical-path items. MSA renewal due 01-SEP — team recommends renewal with tighter 24h SLA.\n\n3. PharmaLink Distributors (Supplies): Minor delivery delay on controlled-substance audit log binders (revised to 16-JUL from 11-JUL). SLA clause 5.2 in play if delayed further. Marcus Webb flagged the controlled-substance segment for rebid at the 15-OCT renewal.\n\n4. ClearPoint Clinical Solutions (Software): CPOE v4.2 patch in vendor QA, targeting 17-JUL staging and 21-JUL production. Westgate lab-order interface ready pending HL7 feed activation from Lumina. Medication-interaction alerting confirmed to meet Joint Commission medication-management standards.",
+      "transcript_excerpt": "Karen Liu: 'All four vendors are green or amber this month. The only yellow item is PharmaLink's 5-day slip on the controlled-substance binders.' Marcus Webb: 'I'd like to use the October renewal to rebid that segment — their delivery track record has slipped twice this year.' James Whitaker: 'Agreed. Karen, make sure the MediTech calibration certificates are filed within 48 hours — Priya needs them for JC compliance.' Priya Raman: 'Confirmed — I need the certs by 20-JUL latest to close the equipment readiness checklist item.' Maria Delgado: 'The ClearPoint med-interaction alerting is also a JC requirement — Lisa Chen confirmed it's in the v4.2 patch.'",
+      "action_items": [
+        {"id": "AI-501", "text": "Obtain MediTech calibration certificates for Westgate patient monitors and autoclave within 48h of service", "owner": "PPL-011", "due": "2026-07-20", "status": "open"},
+        {"id": "AI-502", "text": "Confirm PharmaLink delivers controlled-substance audit log binders by 16-JUL", "owner": "PPL-011", "due": "2026-07-16", "status": "open"},
+        {"id": "AI-503", "text": "Coordinate HL7 feed activation between Lumina and ClearPoint for CPOE lab interface", "owner": "PPL-004", "due": "2026-07-15", "status": "open"},
+        {"id": "AI-504", "text": "Prepare MediTech MSA renewal recommendation with tighter SLA terms for leadership", "owner": "PPL-015", "due": "2026-07-25", "status": "open"},
+        {"id": "AI-505", "text": "Draft rebid scope for PharmaLink controlled-substance distribution segment", "owner": "PPL-015", "due": "2026-08-01", "status": "open"}
+      ]
     }
   ]
 }

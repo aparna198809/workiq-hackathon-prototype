@@ -49,6 +49,38 @@ import engine  # noqa: E402
 
 DEFAULT_SCENARIO = SIM_DIR / "scenarios" / "c1-northbridge"
 
+# ── Report generator registry ──────────────────────────────────────────────
+# Maps golden question IDs with tool="generate_report" to their generator modules.
+# Each entry: (module_name, function_name).  The module must live in SIM_DIR and
+# expose  generate(scenario_dir, persona_id, out_path).
+REPORT_GENERATORS: dict[str, tuple[str, str, str]] = {
+    "Q9": ("generate_weekly_vendor_report", "generate",
+           "Weekly_Vendor_Status_Report.xlsx"),
+    "Q10": ("generate_jc_readiness_report", "generate",
+            "JC_Readiness_Report_Vendor_Compliance.xlsx"),
+}
+
+
+def _maybe_generate_report(result: dict, scenario_dir: str, persona_id: str | None) -> str | None:
+    """If the matched golden entry signals tool=generate_report and we have a
+    registered generator, run it and return the output path.  Otherwise None."""
+    if result.get("tool") != "generate_report":
+        return None
+    matched = result.get("matched")
+    if matched not in REPORT_GENERATORS:
+        return None
+    mod_name, func_name, filename = REPORT_GENERATORS[matched]
+    out_path = Path(scenario_dir) / "tables" / filename
+    try:
+        import importlib
+        mod = importlib.import_module(mod_name)
+        gen_func = getattr(mod, func_name)
+        gen_func(scenario_dir, persona_id or "ops_director", str(out_path))
+        return str(out_path)
+    except Exception as exc:
+        print(_c("1;31", f"\n⚠ Report generation failed: {exc}"))
+        return None
+
 # ANSI helpers (degrade gracefully if the terminal doesn't render them).
 def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m"
@@ -58,7 +90,8 @@ def banner(text: str) -> str:
     return _c("1;36", text)
 
 
-def render(result: dict, question: str, persona_id: str | None) -> None:
+def render(result: dict, question: str, persona_id: str | None,
+           scenario_dir: str | None = None, auto_report: bool = True) -> None:
     print(banner("\n" + "=" * 78))
     print(banner(f"Q: {question}"))
     print(_c("2", f"persona={persona_id or 'all'}  source={result['source']}  "
@@ -73,14 +106,18 @@ def render(result: dict, question: str, persona_id: str | None) -> None:
                   f"{_c('2', c['kind']):<22} {c['title']}")
     if result.get("trimmed"):
         print(_c("1;31", f"\n⚠ Withheld for this persona: {', '.join(result['trimmed'])}"))
+    # Auto-generate report if tool=generate_report and we have a generator
+    if auto_report and scenario_dir and result.get("tool") == "generate_report":
+        out = _maybe_generate_report(result, scenario_dir, persona_id)
+        if out:
+            print(_c("1;32", f"\n📊 Report saved → {out}"))
 
-
-def run_all(sc: engine.Scenario, persona_id: str | None) -> None:
+def run_all(sc: engine.Scenario, persona_id: str | None, scenario_dir: str | None = None) -> None:
     print(banner(f"\n### Running all {len(sc.golden)} Challenge-1 questions as "
                  f"persona='{persona_id or 'all'}' ###"))
     for g in sc.golden:
         result = engine.ask(sc, g["question"], persona_id=persona_id)
-        render(result, g["question"], persona_id)
+        render(result, g["question"], persona_id, scenario_dir)
 
 
 def run_rbac(sc: engine.Scenario, qnum: int) -> None:
@@ -124,7 +161,23 @@ def run_repl(sc: engine.Scenario, persona_id: str | None) -> None:
             print(_c("2", f"persona set to {persona_id or 'all'}"))
             continue
         result = engine.ask(sc, line, persona_id=persona_id)
-        render(result, line, persona_id)
+        render(result, line, persona_id, str(sc.root))
+
+
+def run_scheduled_reports(sc: engine.Scenario, persona_id: str | None,
+                          scenario_dir: str) -> None:
+    """Run all golden questions that have tool=generate_report and auto-generate
+    the Excel reports.  Designed for weekly scheduled execution."""
+    report_qs = [g for g in sc.golden if g.get("tool") == "generate_report"]
+    if not report_qs:
+        print(_c("1;31", "No generate_report questions found in golden."))
+        return
+    print(banner(f"\n### Scheduled report generation — {len(report_qs)} report(s) "
+                 f"as persona='{persona_id or 'ops_director'}' ###"))
+    for g in report_qs:
+        result = engine.ask(sc, g["question"], persona_id=persona_id)
+        render(result, g["question"], persona_id, scenario_dir)
+    print(banner("\n### Scheduled run complete ###"))
 
 
 def main() -> int:
@@ -136,6 +189,8 @@ def main() -> int:
     ap.add_argument("--rbac", type=int, metavar="N",
                     help="show question QN across all personas")
     ap.add_argument("--repl", action="store_true", help="interactive prompt")
+    ap.add_argument("--schedule", action="store_true",
+                    help="run all generate_report questions and produce Excel reports")
     args = ap.parse_args()
 
     sc = engine.load_scenario(args.scenario)
@@ -144,14 +199,17 @@ def main() -> int:
         print(_c("1;31", f"Unknown persona '{persona}'. Valid: {sc.persona_ids()}"))
         return 2
 
-    if args.rbac is not None:
+    if args.schedule:
+        run_scheduled_reports(sc, persona or "ops_director", args.scenario)
+    elif args.rbac is not None:
         run_rbac(sc, args.rbac)
     elif args.ask:
-        render(engine.ask(sc, args.ask, persona_id=persona), args.ask, persona)
+        render(engine.ask(sc, args.ask, persona_id=persona), args.ask, persona,
+               args.scenario)
     elif args.repl:
         run_repl(sc, persona)
     else:
-        run_all(sc, persona)
+        run_all(sc, persona, args.scenario)
     return 0
 
 
