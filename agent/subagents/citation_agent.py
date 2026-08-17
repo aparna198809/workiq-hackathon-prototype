@@ -31,6 +31,9 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from agent_framework import RawAgent as ChatAgent  # noqa: E402

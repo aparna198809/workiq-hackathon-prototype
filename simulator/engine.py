@@ -756,10 +756,30 @@ def ask(sc: Scenario, question: str, persona_id: str | None = None) -> dict:
     if golden is not None:
         visible, trimmed = resolve_citations(sc, golden.get("citations", []), persona_id)
         response = golden["answer"]
+
+        # RBAC: if persona can't see ANY citations, deny the answer entirely
+        if persona_id and golden.get("citations") and not visible:
+            persona = sc.get_persona(persona_id)
+            label = persona["label"] if persona else persona_id
+            response = (
+                f"[Access Restricted] The information you requested exists in the system, "
+                f"but the active persona ({label}) does not have permission to access it. "
+                f"{len(trimmed)} source(s) were withheld due to RBAC access restrictions.\n\n"
+                f"This data is restricted to authorized internal personas. If you believe "
+                f"you should have access, please contact your Northbridge point of contact."
+            )
+            return {
+                "response": response,
+                "conversationId": conversation_id,
+                "citations": [],
+                "trimmed": trimmed,
+                "source": "golden",
+                "matched": golden["id"],
+                "tool": None,
+            }
+
         if trimmed:
-            # RBAC: return the full answer but strip restricted citations from the
-            # visible set and append a governance note. The agent handles any further
-            # messaging about restricted content.
+            # RBAC: return the answer but strip restricted citations and append a note
             persona = sc.get_persona(persona_id)
             label = persona["label"] if persona else (persona_id or "unscoped")
             response += GOVERNANCE_NOTE.format(
@@ -841,10 +861,25 @@ def ask(sc: Scenario, question: str, persona_id: str | None = None) -> dict:
             f"{bullets}"
         )
     else:
-        response = (
-            "No scripted answer matched and no relevant work-context signals were found "
-            "for the active persona."
-        )
+        # Check if data exists but is RBAC-restricted for this persona
+        all_snippets = _all_snippets(sc, None)  # unscoped — see everything
+        unscoped_hits = _retrieve(all_snippets, question)
+        if unscoped_hits:
+            persona_obj = sc.get_persona(persona_id)
+            label = persona_obj["label"] if persona_obj else (persona_id or "unscoped")
+            response = (
+                f"[Access Restricted] The information you requested exists in the system, "
+                f"but the active persona ({label}) does not have permission to access it. "
+                f"{len(unscoped_hits)} relevant source(s) were withheld due to RBAC access "
+                f"restrictions.\n\n"
+                f"This data is restricted to authorized internal personas. If you believe "
+                f"you should have access, please contact your Northbridge point of contact."
+            )
+        else:
+            response = (
+                "No scripted answer matched and no relevant work-context signals were found "
+                "for the active persona."
+            )
     visible, _ = resolve_citations(sc, [s["id"] for s in top], persona_id)
     return {
         "response": response,

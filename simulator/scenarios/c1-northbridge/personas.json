@@ -56,6 +56,62 @@
       "person_id": "PPL-014",
       "description": "External vendor contact for ClearPoint Clinical Solutions. Sees only ClearPoint-related correspondence, contract (VND-004), and CPOE upgrade status. Cannot see other vendors, internal decisions, commercial terms, or HR material.",
       "groups": ["external_vendor"]
+    },
+    {
+      "id": "procurement_eval",
+      "label": "Marcus Webb — Procurement & Sourcing Lead",
+      "person_id": "PPL-015",
+      "description": "Owns the RFP process and vendor evaluation. Sees all RFPs, all vendor proposals, scoring, rankings, and evaluation panel discussions. Reports to James Whitaker.",
+      "groups": ["procurement", "vendor_management"]
+    },
+    {
+      "id": "virtucare_vendor",
+      "label": "Dana Mitchell — VirtuCare Health (Sales Director)",
+      "person_id": "PPL-016",
+      "description": "External vendor candidate for RFP-001 (Telehealth). Sees only VirtuCare-related correspondence and RFP-001 details. Cannot see other vendor proposals, internal scoring, or evaluation discussions.",
+      "groups": ["external_vendor"]
+    },
+    {
+      "id": "telemedix_vendor",
+      "label": "Ryan Patel — TeleMedix Solutions (VP Sales)",
+      "person_id": "PPL-017",
+      "description": "External vendor candidate for RFP-001 (Telehealth). Sees only TeleMedix-related correspondence and RFP-001 details. Cannot see other vendor proposals, internal scoring, or evaluation discussions.",
+      "groups": ["external_vendor"]
+    },
+    {
+      "id": "healthbridge_vendor",
+      "label": "Sofia Reyes — HealthBridge Connect (CEO)",
+      "person_id": "PPL-018",
+      "description": "External vendor candidate for RFP-001 (Telehealth). Sees only HealthBridge-related correspondence and RFP-001 details. Cannot see other vendor proposals, internal scoring, or evaluation discussions.",
+      "groups": ["external_vendor"]
+    },
+    {
+      "id": "meridian_vendor",
+      "label": "Alex Thornton — Meridian Data Sciences (Account Director)",
+      "person_id": "PPL-019",
+      "description": "External vendor candidate for RFP-002 (Clinical Analytics). Sees only Meridian-related correspondence and RFP-002 details.",
+      "groups": ["external_vendor"]
+    },
+    {
+      "id": "insighthealth_vendor",
+      "label": "Priya Kapoor — InsightHealth Analytics (Sales Manager)",
+      "person_id": "PPL-020",
+      "description": "External vendor candidate for RFP-002 (Clinical Analytics). Sees only InsightHealth-related correspondence and RFP-002 details.",
+      "groups": ["external_vendor"]
+    },
+    {
+      "id": "enviromed_vendor",
+      "label": "Carlos Mendez — EnviroMed Disposal (Regional Manager)",
+      "person_id": "PPL-021",
+      "description": "External vendor candidate for RFP-003 (Medical Waste). Sees only EnviroMed-related correspondence and RFP-003 details.",
+      "groups": ["external_vendor"]
+    },
+    {
+      "id": "greenhealth_vendor",
+      "label": "Laura Kim — GreenHealth Waste Services (Account Manager)",
+      "person_id": "PPL-022",
+      "description": "External vendor candidate for RFP-003 (Medical Waste). Sees only GreenHealth-related correspondence and RFP-003 details.",
+      "groups": ["external_vendor"]
     }
   ]
 }

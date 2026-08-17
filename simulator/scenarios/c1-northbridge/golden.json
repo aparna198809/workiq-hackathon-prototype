@@ -138,6 +138,57 @@
       "restricted_citations": [],
       "required_sources": 3,
       "tool": "update_entity"
+    },
+    {
+      "id": "Q14",
+      "tier": "single-signal",
+      "question": "What vendor proposals have we received for the telehealth RFP and how do they compare on cost?",
+      "keywords": ["vendor proposals", "telehealth", "RFP-001", "compare", "cost", "proposals received"],
+      "answer": "Three vendor proposals received for RFP-001 (Telehealth Platform):\n\n1. **VirtuCare Health** — $185,000/year (3-year TCO: $520,000). Includes $60K implementation fee. e-Prescribing included at no extra cost. 8-week implementation.\n\n2. **TeleMedix Solutions** — $210,000/year (3-year TCO: $595,000). Includes $55K implementation + onsite training. Highest cost but most comprehensive (HITRUST, 99.95% SLA, 1h P1 response). 12-week implementation.\n\n3. **HealthBridge Connect** — $125,000/year (3-year TCO: $340,000). No implementation fee (early-adopter pricing). Lowest cost, but e-prescribing is a $15K/year add-on (true annual cost: $140K). 6-week implementation.\n\nCost ranking (lowest to highest annual): HealthBridge ($125K base / $140K with e-Rx) → VirtuCare ($185K) → TeleMedix ($210K).\nTCO ranking (3-year): HealthBridge ($340K) → VirtuCare ($520K) → TeleMedix ($595K).",
+      "citations": ["EML-015", "EML-016", "EML-017", "FILE-009", "FILE-010", "FILE-011", "PROP-001", "PROP-002", "PROP-003"],
+      "restricted_citations": [],
+      "required_sources": 2
+    },
+    {
+      "id": "Q15",
+      "tier": "multi-signal",
+      "question": "Score and rank the telehealth vendor proposals — which vendor should we shortlist and why?",
+      "keywords": ["score", "rank", "telehealth", "vendor proposals", "shortlist", "evaluation", "recommend"],
+      "answer": "Agent-scored ranking for RFP-001 (Telehealth Platform) using the weighted evaluation matrix (Cost 20%, Technical 20%, SLA 15%, Compliance 15%, Implementation 10%, Stability 10%, Innovation 10%):\n\n**1. TeleMedix Solutions — Weighted Score: 8.35 ✓ SHORTLISTED**\n- Cost: 6/10 (highest cost at $210K/yr)\n- Technical: 9/10 (native LuminaEHR connector at 8 live sites)\n- SLA: 10/10 (99.95% uptime, 1h P1 — best of all three)\n- Compliance: 10/10 (HITRUST + SOC 2 + DEA EPCS)\n- Implementation: 7/10 (12 weeks — longest, but includes onsite training)\n- Stability: 9/10 (500+ clients, 10 years in market)\n- Innovation: 7/10 (mature but less cutting-edge)\n\n**2. VirtuCare Health — Weighted Score: 7.80 ✓ SHORTLISTED**\n- Cost: 7/10 (mid-range at $185K/yr)\n- Technical: 8/10 (strong HL7/FHIR, 200+ clients)\n- SLA: 8/10 (99.9%, 2h P1)\n- Compliance: 7/10 (SOC 2 only — no HITRUST)\n- Implementation: 8/10 (8 weeks — fastest of mature vendors)\n- Stability: 8/10 (200+ clients, established)\n- Innovation: 7/10 (solid but conventional)\n\n**3. HealthBridge Connect — Weighted Score: 6.45 ✗ NOT SHORTLISTED**\n- Cost: 9/10 (lowest at $125K/yr)\n- Technical: 6/10 (LuminaEHR connector not pre-built)\n- SLA: 5/10 (99.5%, 4h P1 — weakest)\n- Compliance: 4/10 (SOC 2 incomplete, no HITRUST)\n- Implementation: 7/10 (6 weeks but integration risk)\n- Stability: 4/10 (startup, 45 clients, founded 2023)\n- Innovation: 9/10 (AI triage is differentiating)\n\n**Recommendation:** Shortlist TeleMedix (front-runner on compliance and SLA) and VirtuCare (value option with strong integration). HealthBridge carries too much risk with incomplete SOC 2, no pre-built LuminaEHR connector, and startup vendor stability concerns.",
+      "citations": ["PROP-001", "PROP-002", "PROP-003", "EML-015", "EML-016", "EML-017", "FILE-009", "FILE-010", "FILE-011", "MTG-006", "MTG-007", "MTG-008"],
+      "restricted_citations": [],
+      "required_sources": 3
+    },
+    {
+      "id": "Q16",
+      "tier": "multi-signal",
+      "question": "Give me a side-by-side comparison of all vendor proposals across all RFPs — scoring, status, and key risks.",
+      "keywords": ["side-by-side", "comparison", "all vendor proposals", "all RFPs", "scoring", "risks", "vendor evaluation"],
+      "answer": "Side-by-side vendor proposal comparison across all 3 RFPs:\n\n**RFP-001: Telehealth Platform (Budget: $150K–$250K/yr)**\n| Vendor | Cost/yr | Score | Status | Key Risk |\n|--------|---------|-------|--------|----------|\n| TeleMedix Solutions | $210K | 8.35 | Shortlisted | Highest cost; longest implementation |\n| VirtuCare Health | $185K | 7.80 | Shortlisted | No HITRUST certification |\n| HealthBridge Connect | $125K | 6.45 | Not Shortlisted | SOC 2 incomplete; no Lumina connector; startup |\n\n**RFP-002: Clinical Analytics & Reporting (Budget: $100K–$180K/yr)**\n| Vendor | Cost/yr | Score | Status | Key Risk |\n|--------|---------|-------|--------|----------|\n| Meridian Data Sciences | $165K | 8.10 | Shortlisted | None significant |\n| InsightHealth Analytics | $130K | 6.90 | Not Shortlisted | 4 of 12 JC report templates missing until Q1 2027 |\n\n**RFP-003: Medical Waste Management (Budget: $60K–$100K/yr)**\n| Vendor | Cost/yr | Score | Status | Key Risk |\n|--------|---------|-------|--------|----------|\n| EnviroMed Disposal | $82K | 7.70 | Shortlisted | None significant |\n| GreenHealth Waste Services | $68K | 6.85 | Not Shortlisted | Pharma waste subcontracted; slower emergency response |\n\n**Summary:** 4 vendors shortlisted (TeleMedix, VirtuCare, Meridian, EnviroMed), 3 not shortlisted (HealthBridge, InsightHealth, GreenHealth). Total annual spend for shortlisted vendors: ~$457K–$492K depending on telehealth selection. Contract negotiations underway, target selection by 15-AUG.",
+      "citations": ["PROP-001", "PROP-002", "PROP-003", "PROP-004", "PROP-005", "PROP-006", "PROP-007", "MTG-008", "EML-022", "MSG-013", "MSG-014", "MSG-015"],
+      "restricted_citations": [],
+      "required_sources": 3
+    },
+    {
+      "id": "Q17",
+      "tier": "agentic-synthesis",
+      "question": "What did the evaluation panel decide in the vendor shortlisting meeting and what are the next steps?",
+      "keywords": ["evaluation panel", "vendor shortlisting", "panel meeting", "shortlist decision", "next steps", "vendor selection"],
+      "answer": "Evaluation panel meeting (05-AUG, MTG-008) decisions and next steps:\n\n**Decisions:**\n\n1. **RFP-001 (Telehealth):** Shortlisted TeleMedix Solutions (score 8.35) and VirtuCare Health (7.80). HealthBridge Connect (6.45) eliminated — SOC 2 incomplete, no pre-built LuminaEHR connector, startup risk. TeleMedix is the front-runner on compliance (HITRUST) and SLA; VirtuCare is the value option.\n\n2. **RFP-002 (Analytics):** Shortlisted Meridian Data Sciences (8.10) only. InsightHealth Analytics (6.90) eliminated — 4 missing Joint Commission report templates are a blocker (templates not available until Q1 2027, but Northbridge needs them for the upcoming Joint Commission review).\n\n3. **RFP-003 (Waste):** Shortlisted EnviroMed Disposal (7.70) only. GreenHealth Waste Services (6.85) eliminated — third-party pharmaceutical waste handling via PharmaCycle is a DEA chain-of-custody compliance concern.\n\n**Next Steps:**\n- Marcus Webb to begin contract negotiations with TeleMedix, VirtuCare, Meridian, and EnviroMed (due 12-AUG)\n- Marcus Webb to send rejection notifications to HealthBridge, InsightHealth, and GreenHealth (due 08-AUG)\n- Final recommendation memo with scoring breakdown due 15-AUG\n- Target vendor selection by 15-AUG for all three RFPs",
+      "citations": ["MTG-008", "PROP-001", "PROP-002", "PROP-003", "PROP-004", "PROP-005", "PROP-006", "PROP-007", "EML-022"],
+      "restricted_citations": [],
+      "required_sources": 2
+    },
+    {
+      "id": "Q18",
+      "tier": "agent-mcp-tools",
+      "question": "Update the vendor proposal tracker to reflect the evaluation panel's shortlist decisions and flag any proposals that need follow-up actions.",
+      "keywords": ["update", "vendor proposal tracker", "shortlist", "evaluation panel", "follow-up", "proposal status"],
+      "answer": "Based on the evaluation panel meeting (MTG-008, 05-AUG), the following updates should be applied to the vendor_proposal_tracker:\n\n**Status updates (already reflected):**\n- PROP-001 (VirtuCare) → Shortlisted ✓\n- PROP-002 (TeleMedix) → Shortlisted ✓\n- PROP-003 (HealthBridge) → Not Shortlisted ✓\n- PROP-004 (Meridian) → Shortlisted ✓\n- PROP-005 (InsightHealth) → Not Shortlisted ✓\n- PROP-006 (EnviroMed) → Shortlisted ✓\n- PROP-007 (GreenHealth) → Not Shortlisted ✓\n\n**Follow-up actions needed:**\n1. PROP-001 & PROP-002: Request detailed service credit schedules from VirtuCare and TeleMedix for contract negotiation (AI-601, AI-701)\n2. PROP-001 & PROP-002: Verify reference clients (Cascade Health for VirtuCare, Regional Health Partners for TeleMedix) (AI-602, AI-702)\n3. PROP-003, PROP-005, PROP-007: Send formal rejection notifications to non-shortlisted vendors (AI-804)\n4. All shortlisted proposals: Begin contract negotiation, target completion by 12-AUG (AI-801, AI-802, AI-803)",
+      "citations": ["MTG-008", "PROP-001", "PROP-002", "PROP-003", "PROP-004", "PROP-005", "PROP-006", "PROP-007"],
+      "restricted_citations": [],
+      "required_sources": 2,
+      "tool": "update_entity"
     }
   ]
 }

@@ -30,6 +30,9 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+
 # Allow `python agent/subagents/intent_agent.py` from repo root without an install.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 

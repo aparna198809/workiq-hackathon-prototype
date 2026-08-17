@@ -31,6 +31,9 @@ import re
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import httpx  # noqa: E402
@@ -106,11 +109,28 @@ You have two tool surfaces, both backed by the Work IQ engine:
               report_type values:
                 "weekly_vendor_status"  — Weekly Vendor & Commitment Status
                 "jc_readiness"          — Joint Commission Readiness Report
+        - score_vendor_proposal(rfp_id, vendor_contact)
+              Score a single vendor proposal against weighted criteria.
+              Reads proposal emails/docs, extracts data, scores 1-10 on each
+              criterion, persists to vendor_proposal_tracker with citations.
+        - score_all_proposals(rfp_id?)
+              Score and rank ALL proposals for an RFP (or all RFPs if omitted).
+              Returns ranked results with scoring_citations for audit trail.
+        - evaluate_proposals()
+              CDC-driven re-evaluation. Scans for NEW incoming emails, Teams
+              messages, and meetings related to vendor proposals. Re-scores
+              affected proposals using AI Search semantic retrieval and updates
+              the vendor_proposal_tracker with new scores and citation trails.
+              Call this when the user asks to "re-evaluate", "refresh scores",
+              "check for new proposals", or "what's changed".
+        - get_proposal_evaluation_log()
+              Returns the full audit log of all evidence detected by the
+              proposal evaluation agent across all RFPs.
 
   * workiq-a2a  (Chat surface, remote sub-agent)
         - send a natural-language question; returns a finished, cited answer
 
-Available tables: capa_tracker, vendor_contract_tracker
+Available tables: capa_tracker, vendor_contract_tracker, vendor_proposal_tracker
   capa_tracker fields: id, action, committee, owner, status, opened_date,
           due_date, past_due, acl.
           Valid status values: "Open", "Flagged", "Closed".
@@ -130,6 +150,35 @@ Available tables: capa_tracker, vendor_contract_tracker
           instead of "MediTech Biomedical Inc."). To avoid zero-result misses,
           call fetch("vendor_contract_tracker") with NO filter, then match the
           vendor in your reasoning using substring/fuzzy logic.
+  vendor_proposal_tracker fields: id, rfp_id, rfp_title, vendor_name,
+          vendor_contact, submitted_date, proposal_summary, proposed_cost,
+          proposed_timeline, score_cost, score_technical, score_sla,
+          score_compliance, score_implementation, score_stability,
+          score_innovation, weighted_total, scoring_justification,
+          risk_flags, scoring_citations, status, acl.
+          Valid status values: "Received", "Scored", "Shortlisted",
+          "Not Shortlisted", "Selected", "Rejected".
+          scoring_citations is a list of source IDs (emails, files, meetings)
+          that were used to compute the scores — use these for audit trail.
+
+Vendor proposal scoring rules:
+  When the user asks to "score", "evaluate", "rank", or "compare" vendor
+  proposals, use these tools:
+    - score_vendor_proposal(rfp_id, vendor_contact) — score a single proposal
+    - score_all_proposals(rfp_id) — score and rank all proposals for an RFP
+    - score_all_proposals() — score and rank ALL proposals across ALL RFPs
+    - evaluate_proposals() — scan for NEW content and re-score affected proposals
+  The scoring tool reads proposal emails and documents, extracts key data
+  points, scores each criterion 1-10, computes a weighted total, and persists
+  the result to vendor_proposal_tracker with citation trails.
+  After scoring, present the results with the scoring breakdown and citations.
+
+  IMPORTANT: When the user asks "what's new", "any updates on proposals",
+  "re-evaluate", "refresh scores", "check for new vendor emails", or similar,
+  ALWAYS call evaluate_proposals() FIRST. This scans all incoming emails,
+  Teams messages, and meetings for new proposal-related content, re-scores
+  affected proposals using AI Search semantic retrieval, and updates the
+  tracker. Then present the changes (old score vs new score, new evidence).
 
 CRITICAL routing rule:
   For ALL retrieve questions, ALWAYS call ask_work_iq(question) FIRST with the

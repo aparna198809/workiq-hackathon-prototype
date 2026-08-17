@@ -39,6 +39,7 @@ SERVER_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SERVER_DIR))
 
 import engine  # noqa: E402
+import proposal_scoring  # noqa: E402
 from mcp.server.fastmcp import FastMCP  # noqa: E402
 
 # Import reconciliation agent for approval flow
@@ -46,6 +47,7 @@ AGENT_DIR = Path(__file__).resolve().parent.parent / "agent"
 sys.path.insert(0, str(AGENT_DIR))
 sys.path.insert(0, str(AGENT_DIR / "subagents"))
 import reconciliation_agent  # noqa: E402
+import proposal_eval_agent  # noqa: E402
 
 
 def _scenario_dir() -> Path:
@@ -336,6 +338,150 @@ def reject_proposal(proposal_id: str) -> str:
     return json.dumps(result, indent=2)
 
 
+# --------------------------------------------------------------------------- #
+# Vendor Proposal Scoring tools
+# --------------------------------------------------------------------------- #
+
+@mcp.tool()
+def score_vendor_proposal(rfp_id: str, vendor_contact: str) -> str:
+    """Score a single vendor proposal against the weighted evaluation criteria matrix.
+
+    Reads the vendor's proposal emails and documents, extracts key data points
+    (cost, SLA, compliance, etc.), and scores each criterion 1-10. Writes the
+    result to the vendor_proposal_tracker table with citation trails.
+
+    Args:
+        rfp_id: The RFP identifier (e.g. "RFP-001", "RFP-002", "RFP-003").
+        vendor_contact: The person ID of the vendor contact (e.g. "PPL-016").
+
+    Returns JSON with the scored proposal including individual scores, weighted
+    total, justification, risk flags, and scoring_citations (list of source IDs
+    used to compute the scores).
+    """
+    result = proposal_scoring.score_single_proposal(
+        SCENARIO, rfp_id, vendor_contact, persona_id=PERSONA,
+    )
+    if "error" in result:
+        return json.dumps(result, indent=2)
+
+    # Persist to tracker
+    proposal_scoring._persist_scores(SCENARIO, [result])
+
+    return json.dumps({
+        "status": "scored",
+        "proposal": result,
+        "scoring_criteria_weights": {
+            "Cost & TCO": "20%",
+            "Technical Capability": "20%",
+            "Performance & SLA": "15%",
+            "Compliance & Security": "15%",
+            "Implementation Plan": "10%",
+            "Vendor Stability": "10%",
+            "Innovation & Roadmap": "10%",
+        },
+    }, indent=2)
+
+
+@mcp.tool()
+def score_all_proposals(rfp_id: str | None = None) -> str:
+    """Score and rank all vendor proposals, optionally filtered by RFP.
+
+    For each proposal, reads emails and documents, extracts data, scores against
+    the weighted criteria matrix, ranks by weighted total, and persists to the
+    vendor_proposal_tracker table with citation trails.
+
+    Args:
+        rfp_id: Optional. Score proposals for a specific RFP (e.g. "RFP-001").
+                If omitted, scores ALL proposals across ALL RFPs.
+
+    Returns JSON with ranked proposals per RFP, including scores, justifications,
+    risk flags, and scoring_citations for audit trail.
+    """
+    if rfp_id:
+        scored = proposal_scoring.score_all_proposals_for_rfp(
+            SCENARIO, rfp_id, persona_id=PERSONA, persist=True,
+        )
+        results = {rfp_id: scored} if scored else {}
+    else:
+        results = proposal_scoring.score_all_rfps(
+            SCENARIO, persona_id=PERSONA, persist=True,
+        )
+
+    # Build summary
+    summary = []
+    for rid, rows in results.items():
+        for row in rows:
+            summary.append({
+                "rfp_id": rid,
+                "rank": row.get("rank", 0),
+                "vendor_name": row.get("vendor_name", ""),
+                "weighted_total": row.get("weighted_total", 0),
+                "status": row.get("status", ""),
+                "risk_flags": row.get("risk_flags", ""),
+                "scoring_citations": row.get("scoring_citations", []),
+            })
+
+    return json.dumps({
+        "status": "scored",
+        "total_proposals_scored": sum(len(r) for r in results.values()),
+        "rfps_scored": list(results.keys()),
+        "rankings": summary,
+        "full_results": results,
+        "scoring_criteria_weights": {
+            "Cost & TCO": "20%",
+            "Technical Capability": "20%",
+            "Performance & SLA": "15%",
+            "Compliance & Security": "15%",
+            "Implementation Plan": "10%",
+            "Vendor Stability": "10%",
+            "Innovation & Roadmap": "10%",
+        },
+    }, indent=2)
+
+
+# --------------------------------------------------------------------------- #
+# Proposal Evaluation Agent tools — CDC-driven re-scoring
+# --------------------------------------------------------------------------- #
+
+@mcp.tool()
+def evaluate_proposals() -> str:
+    """Scan for new incoming emails, Teams messages, and meetings related to
+    vendor proposals. For each new piece of evidence found:
+      1. Identifies which RFP and vendor it relates to
+      2. Re-gathers all evidence using AI Search (semantic retrieval)
+      3. Re-scores affected proposals against the weighted criteria matrix
+      4. Updates the vendor_proposal_tracker table with new scores and citations
+
+    Call this whenever you suspect new proposal-related content has arrived,
+    or when the user asks to "re-evaluate", "refresh scores", "check for new
+    proposals", or "what's changed in the RFP responses".
+
+    Returns JSON with:
+      - events: list of new proposal-related content detected
+      - rescored: list of proposals that were re-scored, with old/new scores
+        and the new evidence citations that triggered the change
+    """
+    result = proposal_eval_agent.evaluate_and_rescore(
+        SCENARIO, persona_id=PERSONA,
+    )
+    return json.dumps(result, indent=2)
+
+
+@mcp.tool()
+def get_proposal_evaluation_log() -> str:
+    """Return the full evaluation event log — every piece of evidence the
+    proposal evaluation agent has detected across all RFPs. Useful for
+    audit trail and understanding what informed the current scores.
+
+    Returns JSON list of events with source IDs, types, and timestamps.
+    """
+    history = proposal_eval_agent.get_evaluation_history()
+    return json.dumps({
+        "evaluation_events": history,
+        "count": len(history),
+    }, indent=2)
+
+
 if __name__ == "__main__":
     # Startup diagnostics go to stderr so they don't corrupt the stdio JSON-RPC stream.
     if PERSONA and PERSONA not in SCENARIO.persona_ids():
@@ -353,7 +499,9 @@ if __name__ == "__main__":
     print(
         f"[workiq-simulator] scenario={SCENARIO.root.name} persona={PERSONA or 'all'} "
         f"golden={len(SCENARIO.golden)} tools=ask_work_iq,fetch,create_entity,update_entity,"
-        f"generate_report,check_new_action_items,list_pending_approvals,approve_proposal,reject_proposal",
+        f"generate_report,check_new_action_items,list_pending_approvals,approve_proposal,reject_proposal,"
+        f"score_vendor_proposal,score_all_proposals,"
+        f"evaluate_proposals,get_proposal_evaluation_log",
         file=sys.stderr,
     )
     mcp.run()

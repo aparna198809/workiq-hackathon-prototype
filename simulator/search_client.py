@@ -61,6 +61,11 @@ ATTACHMENT_EXTENSIONS = {
 
 def is_available() -> bool:
     """True if AI Search is configured."""
+    global SEARCH_ENDPOINT, SEARCH_INDEX, SEARCH_ADMIN_KEY
+    if not SEARCH_ENDPOINT:
+        SEARCH_ENDPOINT = os.environ.get("AZURE_SEARCH_ENDPOINT", "")
+        SEARCH_INDEX = os.environ.get("AZURE_SEARCH_INDEX", "workiq-docs")
+        SEARCH_ADMIN_KEY = os.environ.get("AZURE_SEARCH_ADMIN_KEY", "")
     return bool(SEARCH_ENDPOINT)
 
 

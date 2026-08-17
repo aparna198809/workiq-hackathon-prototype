@@ -37,6 +37,9 @@ from decimal import Decimal
 from pathlib import Path
 import time
 
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
 import msal
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request

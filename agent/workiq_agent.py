@@ -56,7 +56,11 @@ import re
 import sys
 import time
 import uuid
+from pathlib import Path
 from typing import Any
+
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 import httpx
 
