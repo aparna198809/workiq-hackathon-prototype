@@ -23,7 +23,7 @@ simulator/
   engine.py                 # load fixtures, retrieve, golden-match, persona-trim, citations, Tools
   server.py                 # MCP stdio server: ask_work_iq + fetch/create_entity/update_entity
   a2a_server.py             # A2A (Agent-to-Agent) JSON-RPC server: ask over the Chat domain
-  requirements.txt          # mcp (+ optional openai); a2a_server is stdlib-only
+  requirements.txt          # mcp, numpy, httpx, azure-identity (+ optional openai); a2a_server is stdlib-only
   tests/
     smoke.py                # engine-level (C2): 8 golden Qs, persona trim, Tools surface (no server)
     mcp_e2e.py              # end-to-end (C2): launches server.py as a real stdio subprocess
@@ -59,8 +59,8 @@ simulator/
 ## Setup
 
 ```powershell
-# from the repo root
-.\.venv\Scripts\python.exe -m pip install -r simulator\requirements.txt
+# from the repo root (Windows ARM64: --only-binary avoids compiling numpy)
+.\.venv\Scripts\python.exe -m pip install --only-binary=:all: -r simulator\requirements.txt
 ```
 
 > Windows note: if `pip` starts compiling `cryptography`, use x64 Python 3.13 for the venv or install the Visual Studio Build Tools (C++ workload) before retrying.
@@ -130,8 +130,8 @@ Invoke-RestMethod -Uri http://127.0.0.1:8920/a2a/ -Method Post -ContentType appl
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `WORKIQ_SIM_SCENARIO` | `scenarios/c2-contoso` | Scenario folder to load (absolute or relative to `server.py`). Ships with `c1-northbridge` and `c2-contoso`. |
-| `WORKIQ_SIM_PERSONA` | `new_pm` | Active persona for permission trimming. **Persona ids are scenario-specific:** C2 (Contoso) = `new_pm` / `quality_engineer` / `contractor` / `director`; C1 (Northbridge) = `ops_director` / `quality_pm` / `credentialing_lead` / `vendor_liaison`. Set to `all` (or unset) for full visibility. |
+| `WORKIQ_SIM_SCENARIO` | `scenarios/c1-northbridge` | Scenario folder to load (absolute or relative to `server.py`). Ships with `c1-northbridge` and `c2-contoso`. |
+| `WORKIQ_SIM_PERSONA` | `quality_pm` | Active persona for permission trimming. **Persona ids are scenario-specific:** C1 (Northbridge) = `ops_director` / `quality_pm` / `credentialing_lead` / `vendor_liaison`; C2 (Contoso) = `new_pm` / `quality_engineer` / `contractor` / `director`. Set to `all` (or unset) for full visibility. |
 | `OPENAI_API_KEY` | _(unset)_ | Optional. Enables LLM fallback for non-golden questions. |
 | `OPENAI_BASE_URL` | _(unset)_ | Optional. OpenAI-compatible endpoint (Azure OpenAI, local, etc.). |
 | `MODEL` | `gpt-4o-mini` | Optional. Model name for the fallback. |
@@ -194,9 +194,11 @@ Identical shape to the real server. Returns:
 
 > The real **stable** Work IQ MCP server exposes only `ask_work_iq` (Chat/Context); the
 > Entity/Tools surface is platform/preview-only. The simulator adds it so the
-> "Agent with MCP / Tools" challenge tier is demonstrable locally. Writes are **in-memory
-> by default** (set `persist=True` in `engine.create_entity`/`update_entity` to write the
-> JSON back).
+> "Agent with MCP / Tools" challenge tier is demonstrable locally. **Note:** the MCP
+> `server.py` calls `create_entity`/`update_entity` with `persist=True`, so writes through
+> the MCP/A2A surface are **written back to the scenario JSON on disk** (running the MCP
+> tests will mutate fixtures — `git checkout -- simulator/scenarios/...` to reset). The
+> engine functions themselves default to `persist=False` (in-memory only).
 
 ---
 

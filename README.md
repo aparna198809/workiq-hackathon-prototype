@@ -26,6 +26,8 @@ Foundry** model, connected to Work IQ over **both MCP and A2A**. See
 workiq-hackathon/
   challenge-pack/     # The challenge pack PDF you read first
   simulator/          # Local Work IQ simulator — 6 challenge scenarios, MCP + A2A servers, tests
+  agent/              # This team's solution: Foundry + Agent Framework orchestrator (MCP + A2A),
+                      #   web UI, and a deterministic hero demo. See agent/README.md.
   starter-kit/        # MCP connection smoke-tests and a reference MCP config
   README.md           # You are here
 ```
@@ -33,6 +35,7 @@ workiq-hackathon/
 | Folder | Start here |
 |---|---|
 | `challenge-pack/WorkIQ-Hackathon-Challenge-Pack_14-JUN-2026.pdf` | The 6 challenges, judging criteria, capability tiers. **Read first.** |
+| `agent/README.md` | The built solution — how to run the orchestrator agent, web UI, and the hero demo (this team targets **Challenge 1 — Northbridge**). |
 
 > **Setup Guide:** the participant setup guide for **real** Work IQ (Path B) is **not
 > included in this repo** — request it from the hackathon organizers.
@@ -63,15 +66,16 @@ real server for **Path B** — your agent code doesn't change.
 git clone https://github.com/kanhaiyasingh/workiq-hackathon.git
 cd workiq-hackathon
 
-# 2. Create a venv + install the one dependency
+# 2. Create a venv + install simulator dependencies
+#    (Windows ARM64: --only-binary uses prebuilt wheels — avoids compiling numpy)
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r simulator\requirements.txt
+.\.venv\Scripts\python.exe -m pip install --only-binary=:all: -r simulator\requirements.txt
 
 # 3. Verify it works (prints "ALL ... PASSED")
 .\.venv\Scripts\python.exe simulator\tests\smoke.py
 
-# 4. Ask it a question 🎉
-.\.venv\Scripts\python.exe simulator\demo.py --ask "What is blocking qualification?"
+# 4. Ask it a question 🎉 (default scenario is now c1-northbridge)
+.\.venv\Scripts\python.exe simulator\demo.py --ask "What did the quality steering committee decide about the medication-reconciliation policy in its last meeting, and who owns the follow-up?"
 ```
 
 > macOS / Linux: use `python3 -m venv .venv` and `.venv/bin/python` instead of
@@ -89,8 +93,8 @@ From the repo root (`workiq-hackathon/`):
 # 1. Create an isolated environment
 python -m venv .venv
 
-# 2. Install the simulator's only dependency (mcp)
-.\.venv\Scripts\python.exe -m pip install -r simulator\requirements.txt
+# 2. Install the simulator's dependencies (mcp, numpy, httpx, azure-identity, openai)
+.\.venv\Scripts\python.exe -m pip install --only-binary=:all: -r simulator\requirements.txt
 
 # 3. Confirm everything works (each prints "ALL ... PASSED")
 .\.venv\Scripts\python.exe simulator\tests\smoke.py
@@ -104,11 +108,17 @@ python -m venv .venv
 ### Ask the simulator a question
 
 ```powershell
-# Default challenge (c2-contoso), default persona
-.\.venv\Scripts\python.exe simulator\demo.py --ask "What is blocking qualification?"
+# Default challenge (c1-northbridge), default persona (quality_pm) — returns a cited answer
+.\.venv\Scripts\python.exe simulator\demo.py --ask "Prep me for the Joint Commission readiness review: what did the quality committee decide on med-reconciliation, who owns the corrective action, did credentialing close the related onboarding gap, and what's outstanding?"
 
-# Try the RBAC governance demo — same question, different persona = redacted answer
-.\.venv\Scripts\python.exe simulator\demo.py --persona contractor --ask "Give me the 45621-B handover brief."
+# Same question as a least-privilege persona = the HR-sensitive parts are withheld (RBAC governance)
+.\.venv\Scripts\python.exe simulator\demo.py --persona vendor_liaison --ask "Prep me for the Joint Commission readiness review: what did the quality committee decide on med-reconciliation, who owns the corrective action, did credentialing close the related onboarding gap, and what's outstanding?"
+
+# Contrast question 5 across ALL personas at once (great for the demo):
+.\.venv\Scripts\python.exe simulator\demo.py --rbac 5
+
+# Point at a different challenge (e.g. C2 Contoso) with --scenario:
+.\.venv\Scripts\python.exe simulator\demo.py --scenario simulator\scenarios\c2-contoso --persona contractor --ask "Give me the 45621-B handover brief."
 ```
 
 ### Plug it into your agent (MCP)
@@ -136,8 +146,16 @@ retrieve, and returns cited answers. The challenge is built and judged around a 
 ### 1. Install
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install agent-framework agent-framework-foundry agent-framework-a2a azure-identity
+# Lean install — the agent/ solution pins these in agent/requirements.txt.
+# NOTE: install agent-framework-core (+ the sub-packages the code imports), NOT the
+# agent-framework meta-package, whose [all] extras currently fail to resolve.
+.\.venv\Scripts\python.exe -m pip install --only-binary=:all: -r agent\requirements.txt
 ```
+
+> **Already built:** this repo's working orchestrator lives in [`agent/`](agent/README.md) —
+> a Foundry + Microsoft Agent Framework agent wired to the simulator over **both MCP and
+> A2A**, plus a web UI and a deterministic `agent/hero_demo.py`. Read `agent/README.md` to
+> run it; the building blocks below explain how it is assembled.
 
 ### 2. Configure your Foundry model (+ Entra auth)
 
@@ -354,6 +372,7 @@ $env:WORKIQ_SIM_PERSONA = "quality_pm"
 ## Need more detail?
 
 - **The challenges** → `challenge-pack/WorkIQ-Hackathon-Challenge-Pack_14-JUN-2026.pdf`
+- **This team's solution (run the agent / web UI / hero demo)** → [`agent/README.md`](agent/README.md)
 - **Real Work IQ setup** → Participant Setup Guide (request from organizers — not in this repo)
 - **Simulator internals, MCP/A2A config, tool contract** → [`simulator/README.md`](simulator/README.md)
 

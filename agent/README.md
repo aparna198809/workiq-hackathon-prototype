@@ -22,10 +22,8 @@ endpoint changes.
 ## Setup
 
 ```powershell
-# 1) Python packages (already installed if you've followed along)
-.\.venv\Scripts\python.exe -m pip install `
-    agent-framework agent-framework-foundry agent-framework-a2a `
-    azure-identity openai
+# 1) Python packages (Windows ARM64: --only-binary uses prebuilt wheels)
+.\.venv\Scripts\python.exe -m pip install --only-binary=:all: -r agent\requirements.txt
 
 # 2) Sign in for Entra ID auth
 az login
@@ -36,7 +34,7 @@ az login
 ```powershell
 $env:AZURE_AI_FOUNDRY_ENDPOINT   = "https://<your-resource>.services.ai.azure.com/openai/v1"
 $env:AZURE_AI_FOUNDRY_DEPLOYMENT = "gpt-4o-mini"     # your deployment name
-$env:WORKIQ_SIM_PERSONA          = "new_pm"           # or quality_engineer | contractor | director
+$env:WORKIQ_SIM_PERSONA          = "quality_pm"      # ops_director | quality_pm | credentialing_lead | vendor_liaison
 ```
 
 ## Run
@@ -50,20 +48,34 @@ launched automatically by the agent):
 In **terminal B** — run the agent:
 ```powershell
 # one-shot
-.\.venv\Scripts\python.exe agent\workiq_agent.py --ask "what is blocking PPAP qualification?"
+.\.venv\Scripts\python.exe agent\workiq_agent.py --ask "Prep me for the Joint Commission readiness review."
 
 # interactive REPL
 .\.venv\Scripts\python.exe agent\workiq_agent.py
 ```
 
+## Deterministic hero demo (no LLM / no Foundry needed)
+
+For a presentation-safe walkthrough that never stalls on the live model, run the
+scripted demo. It drives the **same Work IQ engine** directly and proves all four
+capability domains in order — Context+Chat (the Joint Commission brief), Governance
+(RBAC across personas), and Tools (escalating every past-due quality CAPA):
+
+```powershell
+.\.venv\Scripts\python.exe agent\hero_demo.py            # full walkthrough
+.\.venv\Scripts\python.exe agent\hero_demo.py --no-color # plain output (logs/CI)
+```
+
+It exits non-zero if any act misbehaves, so it doubles as a smoke test of the demo path.
+
 ## Things to try
 
 | Prompt | Watch for |
 |---|---|
-| `what did we decide in the last design review?` | A2A surface used; citations like `MTG-001` |
-| `fetch every milestone tracker row whose status is At Risk` | MCP `fetch` called |
-| `summarise the open qualification blockers and open a tracked risk item for each one` | A2A then MCP `create_entity` (idempotent) |
-| Re-run the same question after `$env:WORKIQ_SIM_PERSONA="contractor"` | RBAC kicks in — restricted facts redacted, governance note surfaced |
+| `what did the quality steering committee decide about the medication-reconciliation policy?` | A2A surface used; citations like `MTG-001` |
+| `fetch every capa_tracker row whose committee is quality_steering and status is Open` | MCP `fetch` called |
+| `for every open corrective action from the quality committee, update its status in the tracker and flag the ones past due` | A2A then MCP `update_entity` — CAPA-001 & CAPA-004 escalated |
+| Re-run a question after `$env:WORKIQ_SIM_PERSONA="vendor_liaison"` | RBAC kicks in — answer fails closed, governance note surfaced |
 
 ## Notes / troubleshooting
 
