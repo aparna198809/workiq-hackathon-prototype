@@ -110,6 +110,138 @@
       "expertise": ["interface engineering", "data migration scripts"],
       "committees": [],
       "acl": ["all"]
+    },
+    {
+      "id": "PPL-011",
+      "name": "Karen Liu",
+      "title": "Vendor/Contract Manager (VMO)",
+      "email": "karen.liu@northbridge-health.org",
+      "department": "Procurement & Vendor Management",
+      "manager": "PPL-002",
+      "expertise": ["vendor management", "contract administration", "SLA monitoring", "procurement"],
+      "committees": ["vendor_review"],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-012",
+      "name": "Rachel Torres",
+      "title": "Account Manager, MediTech Biomedical Inc.",
+      "email": "rachel.torres@meditech-biomed.com",
+      "department": "Vendor (MediTech Biomedical Inc.)",
+      "manager": null,
+      "expertise": ["biomedical equipment", "calibration services", "preventive maintenance"],
+      "committees": [],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-013",
+      "name": "Steve Nakamura",
+      "title": "Regional Manager, PharmaLink Distributors",
+      "email": "steve.nakamura@pharmalink-dist.com",
+      "department": "Vendor (PharmaLink Distributors)",
+      "manager": null,
+      "expertise": ["pharmaceutical distribution", "supply chain", "controlled-substance compliance"],
+      "committees": [],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-014",
+      "name": "Lisa Chen",
+      "title": "Account Director, ClearPoint Clinical Solutions",
+      "email": "lisa.chen@clearpoint-clinical.com",
+      "department": "Vendor (ClearPoint Clinical Solutions)",
+      "manager": null,
+      "expertise": ["clinical software", "CPOE systems", "lab integration", "clinical decision support"],
+      "committees": [],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-015",
+      "name": "Marcus Webb",
+      "title": "Procurement & Sourcing Lead",
+      "email": "marcus.webb@northbridge-health.org",
+      "department": "Procurement & Vendor Management",
+      "manager": "PPL-002",
+      "expertise": ["sourcing", "RFP management", "contract negotiation", "vendor evaluation"],
+      "committees": ["vendor_review"],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-016",
+      "name": "Dana Mitchell",
+      "title": "Sales Director, VirtuCare Health",
+      "email": "dana.mitchell@virtucare-health.com",
+      "department": "Vendor (VirtuCare Health)",
+      "manager": null,
+      "expertise": ["telehealth platforms", "EHR integration", "remote care delivery"],
+      "committees": [],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-017",
+      "name": "Ryan Patel",
+      "title": "VP of Sales, TeleMedix Solutions",
+      "email": "ryan.patel@telemedix.com",
+      "department": "Vendor (TeleMedix Solutions)",
+      "manager": null,
+      "expertise": ["telehealth", "enterprise deployments", "healthcare SaaS"],
+      "committees": [],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-018",
+      "name": "Sofia Reyes",
+      "title": "CEO & Co-Founder, HealthBridge Connect",
+      "email": "sofia.reyes@healthbridge-connect.com",
+      "department": "Vendor (HealthBridge Connect)",
+      "manager": null,
+      "expertise": ["AI-powered telehealth", "clinical triage", "startup scaling"],
+      "committees": [],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-019",
+      "name": "Alex Thornton",
+      "title": "Account Director, Meridian Data Sciences",
+      "email": "alex.thornton@meridian-data.com",
+      "department": "Vendor (Meridian Data Sciences)",
+      "manager": null,
+      "expertise": ["clinical analytics", "population health", "HL7/FHIR integration"],
+      "committees": [],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-020",
+      "name": "Priya Kapoor",
+      "title": "Sales Manager, InsightHealth Analytics",
+      "email": "priya.kapoor@insighthealth.com",
+      "department": "Vendor (InsightHealth Analytics)",
+      "manager": null,
+      "expertise": ["cloud analytics", "regulatory reporting", "predictive modeling"],
+      "committees": [],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-021",
+      "name": "Carlos Mendez",
+      "title": "Regional Manager, EnviroMed Disposal",
+      "email": "carlos.mendez@enviromed-disposal.com",
+      "department": "Vendor (EnviroMed Disposal)",
+      "manager": null,
+      "expertise": ["medical waste management", "DOT compliance", "healthcare facilities"],
+      "committees": [],
+      "acl": ["all"]
+    },
+    {
+      "id": "PPL-022",
+      "name": "Laura Kim",
+      "title": "Account Manager, GreenHealth Waste Services",
+      "email": "laura.kim@greenhealth-waste.com",
+      "department": "Vendor (GreenHealth Waste Services)",
+      "manager": null,
+      "expertise": ["waste management", "sustainability", "compliance services"],
+      "committees": [],
+      "acl": ["all"]
     }
   ]
 }

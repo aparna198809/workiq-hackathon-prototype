@@ -48,6 +48,138 @@
       "acl": ["ops_director", "quality_pm", "credentialing_lead"],
       "summary": "Joint Commission readiness checklist maintained by Compliance. Tracks medication-management (med-reconciliation policy, CAPA-001), environment of care (CAPA-004), and human-resources/credentialing (provider-onboarding gap CAPA-002, now closed). Outstanding items before the review: CAPA-001 and CAPA-004.",
       "content_excerpt": "Medication Management: revised reconciliation policy — OPEN (CAPA-001). Environment of Care: Westgate documentation — OPEN (CAPA-004). Human Resources/Credentialing: provider-onboarding verification — CLOSED (CAPA-002)."
+    },
+    {
+      "id": "FILE-005",
+      "name": "Vendor Contract Portfolio Summary — Q3 2026.xlsx",
+      "url": "https://northbridge-health.sharepoint.com/sites/VMO/Shared%20Documents/Vendor-Portfolio-Summary-Q3.xlsx",
+      "type": "spreadsheet",
+      "owner": "PPL-011",
+      "date": "2026-07-11T00:00:00Z",
+      "sensitivity": "internal",
+      "acl": ["ops_director", "quality_pm", "vendor_manager"],
+      "summary": "Quarterly vendor contract portfolio summary maintained by the VMO. Covers all four active vendor contracts: Lumina Health Systems (EHR), MediTech Biomedical (equipment), PharmaLink Distributors (supplies), ClearPoint Clinical Solutions (clinical software). Tracks contract value, SLA status, renewal dates, and open commitments per vendor.",
+      "content_excerpt": "Lumina Health Systems | EHR & Clinical Software | $1.2M | Active | SLA Green | Renewal 01-MAR-2027. MediTech Biomedical | Medical Equipment | $340K | Active | SLA Green | Renewal 01-SEP-2026. PharmaLink Distributors | Supplies & Pharmacy | $520K | Active | SLA Amber | Renewal 15-OCT-2026. ClearPoint Clinical Solutions | Clinical Software | $280K | Active | SLA Green | Renewal 01-MAR-2027."
+    },
+    {
+      "id": "FILE-006",
+      "name": "MediTech Biomedical — MSA & SLA Schedule.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/VMO/Contracts/MediTech-MSA-SLA.pdf",
+      "type": "document",
+      "owner": "PPL-011",
+      "date": "2025-09-01T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "vendor_manager"],
+      "summary": "Master Service Agreement and SLA schedule with MediTech Biomedical Inc. Covers biomedical equipment preventive maintenance, calibration, and emergency repair across all Northbridge clinics. SLA: 48-hour response for preventive maintenance, 4-hour response for critical equipment failure. Service credit: 10% of monthly fee per SLA breach. Auto-renewal 01-SEP annually with 60-day notice to terminate.",
+      "content_excerpt": "Section 3 Scope: preventive maintenance and calibration for all biomedical equipment per FDA and Joint Commission standards. Section 7 SLA: 48h response for scheduled maintenance; 4h response for critical equipment (defibrillators, ventilators). Section 8 Service Credits: 10% of monthly fee per calendar month with an SLA breach."
+    },
+    {
+      "id": "FILE-007",
+      "name": "PharmaLink — Distribution Agreement.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/VMO/Contracts/PharmaLink-Distribution-Agreement.pdf",
+      "type": "document",
+      "owner": "PPL-011",
+      "date": "2025-10-15T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "vendor_manager"],
+      "summary": "Distribution agreement with PharmaLink Distributors for clinical supplies and pharmacy distribution. Covers formulary kits, PPE, and controlled-substance audit materials. SLA: 5-business-day delivery for standard orders, 24-hour delivery for urgent orders. Service credit clause 5.2: 5% credit per week of delay on any line item. Renewal 15-OCT annually.",
+      "content_excerpt": "Section 2 Scope: distribution of formulary kits, PPE supplies, and controlled-substance record-keeping materials. Section 5.2 Service Credits: 5% of delayed line-item value per week of delay beyond the committed delivery date. Section 9 Renewal: annual renewal on 15-OCT with 90-day rebid notice."
+    },
+    {
+      "id": "FILE-008",
+      "name": "ClearPoint — Clinical Software License & Support Agreement.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/VMO/Contracts/ClearPoint-License-Agreement.pdf",
+      "type": "document",
+      "owner": "PPL-011",
+      "date": "2026-03-01T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "vendor_manager"],
+      "summary": "License and support agreement with ClearPoint Clinical Solutions for CPOE, lab-order interface, and clinical decision support software. Covers the medication-interaction alerting module required for Joint Commission medication-management compliance. SLA: 99.5% uptime, 2-hour P1 incident response. Appendix C maps features to Joint Commission standards. Renewal 01-MAR-2027.",
+      "content_excerpt": "Section 1 Scope: CPOE module, lab-order HL7 interface, and medication-interaction alerting (clinical decision support). Appendix C: feature-to-standard mapping for Joint Commission medication-management requirements. Section 6 SLA: 99.5% monthly uptime; 2h P1 response, 8h P2 response. Section 10 Renewal: 01-MAR-2027, 120-day notice."
+    },
+    {
+      "id": "FILE-009",
+      "name": "VirtuCare Health — Telehealth Platform Proposal.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/Procurement/RFP-001/VirtuCare-Proposal.pdf",
+      "type": "document",
+      "owner": "PPL-015",
+      "date": "2026-07-20T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "virtucare_vendor"],
+      "summary": "VirtuCare Health proposal for RFP-001 (Telehealth Platform). Annual cost $185K, 3-year TCO $520K. Full LuminaEHR HL7/FHIR integration, e-prescribing included, mobile apps, 99.9% uptime SLA, 2h P1 response, SOC 2 Type II certified. 200+ healthcare clients. 8-week implementation. References: Cascade Health Network, Pinnacle Medical Group.",
+      "content_excerpt": "Pricing: $185,000/year, $60,000 one-time implementation fee. Integration: native HL7/FHIR connector for LuminaEHR (pre-built, tested at 12 sites). SLA: 99.9% uptime, 2-hour P1 response, 24/7 support. Compliance: HIPAA, SOC 2 Type II (audited annually), BAA provided. Implementation: 8-week phased rollout — Week 1-2 configuration, Week 3-5 integration testing, Week 6-7 training, Week 8 go-live. References: Cascade Health (18 clinics, 2 years), Pinnacle Medical (8 clinics, 3 years)."
+    },
+    {
+      "id": "FILE-010",
+      "name": "TeleMedix Solutions — Telehealth Platform Proposal.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/Procurement/RFP-001/TeleMedix-Proposal.pdf",
+      "type": "document",
+      "owner": "PPL-015",
+      "date": "2026-07-21T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "telemedix_vendor"],
+      "summary": "TeleMedix Solutions proposal for RFP-001 (Telehealth Platform). Annual cost $210K, 3-year TCO $595K. Native LuminaEHR connector (deployed at 8 Lumina sites), HITRUST certified, DEA-compliant e-prescribing, 99.95% uptime SLA, 1h P1 response. 500+ clients, 10 years in healthcare. 12-week implementation with onsite team. References: Regional Health Partners, Great Lakes Medical Center.",
+      "content_excerpt": "Pricing: $210,000/year, $55,000 implementation + onsite training. Integration: pre-built LuminaEHR connector (live at 8 Lumina client sites). SLA: 99.95% uptime guaranteed, 1-hour P1 response (contractual, with service credits). Compliance: HIPAA, SOC 2 Type II, HITRUST CSF certified, DEA-compliant EPCS. Implementation: 12-week with dedicated onsite team — includes train-the-trainer program. Client base: 500+ healthcare organizations, 50+ multi-site networks. References: Regional Health Partners (32 clinics), Great Lakes Medical Center (15 clinics), Beacon Health Alliance (22 clinics)."
+    },
+    {
+      "id": "FILE-011",
+      "name": "HealthBridge Connect — Telehealth Platform Proposal.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/Procurement/RFP-001/HealthBridge-Proposal.pdf",
+      "type": "document",
+      "owner": "PPL-015",
+      "date": "2026-07-23T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "healthbridge_vendor"],
+      "summary": "HealthBridge Connect proposal for RFP-001 (Telehealth Platform). Annual cost $125K ($140K with e-prescribing add-on), 3-year TCO $340K. AI-powered clinical triage, REST/FHIR EHR integration (LuminaEHR connector not pre-built — estimated 4 weeks custom development). SOC 2 Type II in progress (expected Q4 2026). 45 clients (founded 2023). 6-week remote implementation. 99.5% uptime SLA, 4h P1 response.",
+      "content_excerpt": "Pricing: $125,000/year (base), e-prescribing via DrFirst add-on $15,000/year. No implementation fee for early-adopter partners. Integration: REST/FHIR API — LuminaEHR requires custom connector (4 weeks estimated development). SLA: 99.5% uptime, 4-hour P1 response. Compliance: HIPAA compliant, SOC 2 Type II audit in progress (completion expected Q4 2026). Differentiator: AI-powered symptom triage reduces unnecessary in-person visits by 30% (validated across 12 pilot sites). Founded 2023, 45 clients, 3x year-over-year growth."
+    },
+    {
+      "id": "FILE-012",
+      "name": "Meridian Data Sciences — Clinical Analytics Proposal.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/Procurement/RFP-002/Meridian-Proposal.pdf",
+      "type": "document",
+      "owner": "PPL-015",
+      "date": "2026-07-22T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "meridian_vendor"],
+      "summary": "Meridian Data Sciences proposal for RFP-002 (Clinical Analytics). Annual cost $165K, 3-year TCO $460K. Enterprise analytics with native HL7/FHIR connectors for LuminaEHR and ClearPoint CPOE. 12 pre-built Joint Commission report templates. Real-time dashboards, population health analytics, predictive modeling. 50+ hospital deployments. SOC 2 Type II, HITRUST. 10-week implementation. 99.9% uptime SLA.",
+      "content_excerpt": "Pricing: $165,000/year, $35,000 implementation fee. Integration: pre-built HL7/FHIR connectors for LuminaEHR and ClearPoint CPOE (tested and deployed at 8 joint clients). Joint Commission: 12 standard report templates covering all required quality metrics, customizable. Analytics: real-time dashboards (15+ standard views), population health trending, predictive readmission risk scoring. SLA: 99.9% uptime, dedicated support engineer. References: Midwest Health System (22 sites, 4 years), Atlantic Regional Medical (12 sites, 2 years)."
+    },
+    {
+      "id": "FILE-013",
+      "name": "InsightHealth Analytics — Clinical Analytics Proposal.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/Procurement/RFP-002/InsightHealth-Proposal.pdf",
+      "type": "document",
+      "owner": "PPL-015",
+      "date": "2026-07-24T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "insighthealth_vendor"],
+      "summary": "InsightHealth Analytics proposal for RFP-002 (Clinical Analytics). Annual cost $130K, 3-year TCO $365K. Cloud-native, zero on-premise infrastructure. FHIR-based EHR integration (LuminaEHR connector available, ClearPoint requires 3 weeks custom work). 8 of 12 Joint Commission report templates available (remaining 4 in Q1 2027 roadmap). Real-time dashboards, predictive analytics. SOC 2 Type II certified. 6-week implementation. 99.5% uptime SLA. 30 healthcare clients.",
+      "content_excerpt": "Pricing: $130,000/year, $15,000 implementation (cloud setup + training). Integration: FHIR-native — LuminaEHR connector ready, ClearPoint CPOE connector requires 3 weeks of custom integration. Joint Commission: 8 of 12 standard report templates available today; remaining 4 (environment-of-care, credentialing metrics, medication-management variance, sentinel-event trending) on product roadmap for Q1 2027. SLA: 99.5% uptime, 4-hour P1, 8-hour P2. References: Coastal Health Group (10 sites), Metro Ambulatory Network (6 sites)."
+    },
+    {
+      "id": "FILE-014",
+      "name": "EnviroMed Disposal — Medical Waste Management Proposal.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/Procurement/RFP-003/EnviroMed-Proposal.pdf",
+      "type": "document",
+      "owner": "PPL-015",
+      "date": "2026-07-25T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "enviromed_vendor"],
+      "summary": "EnviroMed Disposal proposal for RFP-003 (Medical Waste Management). Annual cost $82K. 15 years in healthcare waste. DOT-certified fleet, EPA compliant. 3x/week scheduled pickups, 4-hour emergency collection. Online manifesting/tracking portal. Pharmaceutical waste handling (DEA-compliant). Staff OSHA compliance training included. 150+ healthcare facility clients.",
+      "content_excerpt": "Pricing: $82,000/year, all Northbridge facilities included. Service: 3x/week scheduled pickups at all sites, 4-hour emergency collection response. Fleet: DOT-certified, GPS-tracked vehicles, EPA-compliant processing at owned facility. Pharmaceutical waste: in-house DEA-compliant destruction with chain-of-custody manifesting. Training: annual OSHA compliance training for all designated staff. Portal: real-time tracking, manifesting, compliance audit reports. References: Lakewood Health System (12 facilities, 8 years), Valley Medical Centers (6 sites, 5 years)."
+    },
+    {
+      "id": "FILE-015",
+      "name": "GreenHealth Waste Services — Medical Waste Management Proposal.pdf",
+      "url": "https://northbridge-health.sharepoint.com/sites/Procurement/RFP-003/GreenHealth-Proposal.pdf",
+      "type": "document",
+      "owner": "PPL-015",
+      "date": "2026-07-26T00:00:00Z",
+      "sensitivity": "restricted",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "greenhealth_vendor"],
+      "summary": "GreenHealth Waste Services proposal for RFP-003 (Medical Waste Management). Annual cost $68K. National provider, 800+ healthcare clients. DOT-certified, EPA-compliant, zero-landfill sustainability program. 2x/week pickups, 6-hour emergency collection. Digital tracking portal. Pharmaceutical waste handled via PharmaCycle Inc. partnership. Carbon-neutral operations.",
+      "content_excerpt": "Pricing: $68,000/year, all Northbridge facilities included. Service: 2x/week scheduled pickups, 6-hour emergency collection. Fleet: DOT-certified, EPA-compliant, zero-landfill processing. Pharmaceutical waste: handled through PharmaCycle Inc. partnership (DEA-compliant third-party destruction). Training: initial + annual refresher for designated staff. Sustainability: carbon-neutral operations, ESG compliance reporting provided. References: National Health Corp (200 sites), Midwest Ambulatory Care (45 sites)."
     }
   ]
 }

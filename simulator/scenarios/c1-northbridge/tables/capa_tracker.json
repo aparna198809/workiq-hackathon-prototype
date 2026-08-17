@@ -5,9 +5,9 @@
       "action": "Finalise and publish the revised medication-reconciliation policy",
       "committee": "quality_steering",
       "owner": "PPL-005",
-      "status": "Flagged",
+      "status": "Open",
       "opened_date": "2026-05-27",
-      "due_date": "2026-06-09",
+      "due_date": "2026-07-25",
       "past_due": false,
       "acl": [
         "ops_director",
@@ -75,13 +75,10 @@
       ]
     },
     {
-      "action": "Conduct post-go-live EHR user satisfaction survey at Westgate",
-      "committee": "ehr_program",
-      "owner": "PPL-004",
+      "action": "PharmaLink supply-chain compliance audit",
+      "owner": "PPL-013",
+      "due_date": "2026-07-30",
       "status": "Open",
-      "opened_date": "2026-06-28",
-      "due_date": "2026-07-15",
-      "past_due": false,
       "id": "CAPA-006",
       "acl": [
         "ops_director",
@@ -90,13 +87,10 @@
       ]
     },
     {
-      "action": "Conduct post-go-live EHR user satisfaction survey at Westgate",
-      "committee": "ehr_program",
-      "owner": "PPL-004",
+      "action": "MediTech calibration certificate tracking",
+      "owner": "PPL-012",
+      "due_date": "2026-07-20",
       "status": "Open",
-      "opened_date": "2026-06-28",
-      "due_date": "2026-07-15",
-      "past_due": false,
       "id": "CAPA-007",
       "acl": [
         "ops_director",

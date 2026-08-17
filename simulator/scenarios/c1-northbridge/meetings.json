@@ -61,6 +61,72 @@
         {"id": "AI-401", "text": "Complete and validate the Westgate medication-list data migration", "owner": "PPL-010", "due": "2026-06-13", "status": "open"},
         {"id": "AI-402", "text": "Obtain written go-live date confirmation from Lumina Health Systems", "owner": "PPL-004", "due": "2026-06-11", "status": "open"}
       ]
+    },
+    {
+      "id": "MTG-005",
+      "title": "Monthly Vendor Performance Review",
+      "committee": "vendor_review",
+      "date": "2026-07-10T15:00:00Z",
+      "organizer": "PPL-011",
+      "attendees": ["PPL-011", "PPL-002", "PPL-015", "PPL-007", "PPL-001"],
+      "acl": ["ops_director", "quality_pm", "vendor_manager"],
+      "recap": "Monthly vendor performance review (10-JUL). Four active vendor contracts reviewed:\n\n1. Lumina Health Systems (EHR): Westgate go-live completed on 22-JUN as planned. Post-go-live support period ends 22-JUL. SLA compliance: 100% — no incidents. No action required.\n\n2. MediTech Biomedical (Equipment): Riverside calibrations complete. Westgate patient-monitor calibration scheduled 14-JUL, autoclave validation 18-JUL. Both are Joint Commission critical-path items. MSA renewal due 01-SEP — team recommends renewal with tighter 24h SLA.\n\n3. PharmaLink Distributors (Supplies): Minor delivery delay on controlled-substance audit log binders (revised to 16-JUL from 11-JUL). SLA clause 5.2 in play if delayed further. Marcus Webb flagged the controlled-substance segment for rebid at the 15-OCT renewal.\n\n4. ClearPoint Clinical Solutions (Software): CPOE v4.2 patch in vendor QA, targeting 17-JUL staging and 21-JUL production. Westgate lab-order interface ready pending HL7 feed activation from Lumina. Medication-interaction alerting confirmed to meet Joint Commission medication-management standards.",
+      "transcript_excerpt": "Karen Liu: 'All four vendors are green or amber this month. The only yellow item is PharmaLink's 5-day slip on the controlled-substance binders.' Marcus Webb: 'I'd like to use the October renewal to rebid that segment — their delivery track record has slipped twice this year.' James Whitaker: 'Agreed. Karen, make sure the MediTech calibration certificates are filed within 48 hours — Priya needs them for JC compliance.' Priya Raman: 'Confirmed — I need the certs by 20-JUL latest to close the equipment readiness checklist item.' Maria Delgado: 'The ClearPoint med-interaction alerting is also a JC requirement — Lisa Chen confirmed it's in the v4.2 patch.'",
+      "action_items": [
+        {"id": "AI-501", "text": "Obtain MediTech calibration certificates for Westgate patient monitors and autoclave within 48h of service", "owner": "PPL-011", "due": "2026-07-20", "status": "open"},
+        {"id": "AI-502", "text": "Confirm PharmaLink delivers controlled-substance audit log binders by 16-JUL", "owner": "PPL-011", "due": "2026-07-16", "status": "open"},
+        {"id": "AI-503", "text": "Coordinate HL7 feed activation between Lumina and ClearPoint for CPOE lab interface", "owner": "PPL-004", "due": "2026-07-15", "status": "open"},
+        {"id": "AI-504", "text": "Prepare MediTech MSA renewal recommendation with tighter SLA terms for leadership", "owner": "PPL-015", "due": "2026-07-25", "status": "open"},
+        {"id": "AI-505", "text": "Draft rebid scope for PharmaLink controlled-substance distribution segment", "owner": "PPL-015", "due": "2026-08-01", "status": "open"}
+      ]
+    },
+    {
+      "id": "MTG-006",
+      "title": "VirtuCare Health — Telehealth Platform Demo & Presentation",
+      "committee": "vendor_review",
+      "date": "2026-08-01T10:00:00Z",
+      "organizer": "PPL-015",
+      "attendees": ["PPL-015", "PPL-011", "PPL-002", "PPL-016"],
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "virtucare_vendor"],
+      "recap": "VirtuCare Health telehealth demo (01-AUG). Dana Mitchell presented the platform. Key takeaways: clean UI with strong mobile experience; the LuminaEHR integration demo was seamless (HL7/FHIR bi-directional). e-Prescribing fully embedded, not an add-on. Pricing confirmed at $185K/year. Weakness: no HITRUST certification (SOC 2 only). Implementation can start within 2 weeks of contract. James Whitaker asked about multi-site scalability — VirtuCare confirmed they handle up to 50 concurrent sites. Karen Liu noted the SLA terms are strong (99.9%, 2h P1) with contractual service credits.",
+      "transcript_excerpt": "Dana Mitchell: 'Let me show you the LuminaEHR integration — this is a live connection to our demo Lumina instance. Orders flow both ways in real time.' Marcus Webb: 'What about HITRUST?' Dana Mitchell: 'We are SOC 2 Type II certified. HITRUST is on our roadmap for 2027 but not yet started.' James Whitaker: 'How many concurrent sites can you handle?' Dana Mitchell: 'Our largest deployment is 40 clinics for Cascade Health. We can scale to 50+ without infrastructure changes.' Karen Liu: 'The 99.9% uptime with service credits is competitive. I'd want to see the credit calculation in the contract.'",
+      "action_items": [
+        {"id": "AI-601", "text": "Request VirtuCare service credit terms and escalation matrix", "owner": "PPL-015", "due": "2026-08-05", "status": "open"},
+        {"id": "AI-602", "text": "Verify VirtuCare Cascade Health reference (contact reference client directly)", "owner": "PPL-011", "due": "2026-08-08", "status": "open"}
+      ]
+    },
+    {
+      "id": "MTG-007",
+      "title": "TeleMedix Solutions — Telehealth Platform Demo & Presentation",
+      "committee": "vendor_review",
+      "date": "2026-08-02T14:00:00Z",
+      "organizer": "PPL-015",
+      "attendees": ["PPL-015", "PPL-011", "PPL-002", "PPL-017"],
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "telemedix_vendor"],
+      "recap": "TeleMedix telehealth demo (02-AUG). Ryan Patel presented. Key strengths: the most mature platform — 10 years in market, 500+ healthcare clients. Native LuminaEHR connector already deployed at 8 Lumina sites (no integration risk). DEA-compliant EPCS for e-prescribing. HITRUST certified in addition to SOC 2. Best SLA of all three vendors (99.95%, 1h P1). Weakness: highest cost ($210K/year) and longest implementation (12 weeks). The onsite training team is a differentiator — dedicated trainers for the full 12 weeks. James Whitaker was impressed by the HITRUST certification and asked about their healthcare-specific security posture.",
+      "transcript_excerpt": "Ryan Patel: 'We're the only vendor in this RFP with both HITRUST and SOC 2. Our LuminaEHR connector has been live at 8 sites for over 2 years with zero integration incidents.' Karen Liu: 'The 99.95% SLA with 1-hour P1 is the best we've seen. What's the service credit structure?' Ryan Patel: '2% of monthly fee per 0.01% below the SLA threshold — it's aggressive and we stand behind it.' James Whitaker: 'The HITRUST is important for our Joint Commission compliance posture. How does your 12-week timeline break down?' Ryan Patel: 'Weeks 1-4 configuration, Weeks 5-8 integration testing, Weeks 9-12 onsite training and phased go-live.'",
+      "action_items": [
+        {"id": "AI-701", "text": "Request TeleMedix contractual service credit schedule and SLA penalty terms", "owner": "PPL-015", "due": "2026-08-05", "status": "open"},
+        {"id": "AI-702", "text": "Contact Regional Health Partners reference for TeleMedix (32-site deployment)", "owner": "PPL-011", "due": "2026-08-08", "status": "open"}
+      ]
+    },
+    {
+      "id": "MTG-008",
+      "title": "Vendor Evaluation Panel — RFP Shortlisting & Scoring Review",
+      "committee": "vendor_review",
+      "date": "2026-08-05T10:00:00Z",
+      "organizer": "PPL-015",
+      "attendees": ["PPL-015", "PPL-011", "PPL-002", "PPL-001"],
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "quality_pm"],
+      "recap": "Vendor evaluation panel meeting (05-AUG). Panel reviewed agent-generated scoring for all 7 proposals across 3 RFPs.\n\nRFP-001 (Telehealth) — shortlisted: TeleMedix Solutions (weighted score 8.35) and VirtuCare Health (7.80). HealthBridge Connect (6.45) not shortlisted due to SOC 2 gap and unproven LuminaEHR integration. Panel agreed TeleMedix is the front-runner on compliance and SLA; VirtuCare is the value option with good integration. Decision: proceed to final negotiation with both, target selection by 15-AUG.\n\nRFP-002 (Clinical Analytics) — shortlisted: Meridian Data Sciences (8.10). InsightHealth Analytics (6.90) not shortlisted — 4 missing Joint Commission templates are a blocker until Q1 2027. Decision: move to contract negotiation with Meridian.\n\nRFP-003 (Medical Waste) — shortlisted: EnviroMed Disposal (7.70). GreenHealth Waste Services (6.85) not shortlisted — third-party pharmaceutical waste handling is a compliance risk. Decision: move to contract negotiation with EnviroMed.",
+      "transcript_excerpt": "Marcus Webb: 'The scoring is clear. For telehealth, TeleMedix leads at 8.35 — best SLA, HITRUST, proven Lumina integration. VirtuCare at 7.80 is the value play. HealthBridge at 6.45 has too many gaps.' James Whitaker: 'Agreed. HealthBridge is too risky with incomplete SOC 2 and no Lumina connector. Let's shortlist the top two and negotiate.' Karen Liu: 'For analytics, Meridian at 8.10 is the only real option — we need all 12 JC templates now, not in Q1 2027.' Maria Delgado: 'From a quality perspective, the Joint Commission reports are non-negotiable. Meridian is the right choice.' Marcus Webb: 'For waste, EnviroMed at 7.70 — they handle pharma waste in-house. GreenHealth subcontracts it, which is a compliance concern for DEA chain-of-custody.' James Whitaker: 'Approved. Proceed with negotiations on the three shortlisted vendors.'",
+      "action_items": [
+        {"id": "AI-801", "text": "Begin contract negotiation with TeleMedix and VirtuCare for RFP-001 (Telehealth)", "owner": "PPL-015", "due": "2026-08-12", "status": "open"},
+        {"id": "AI-802", "text": "Begin contract negotiation with Meridian Data Sciences for RFP-002 (Analytics)", "owner": "PPL-015", "due": "2026-08-12", "status": "open"},
+        {"id": "AI-803", "text": "Begin contract negotiation with EnviroMed Disposal for RFP-003 (Waste)", "owner": "PPL-015", "due": "2026-08-12", "status": "open"},
+        {"id": "AI-804", "text": "Send shortlist notifications to non-selected vendors (HealthBridge, InsightHealth, GreenHealth)", "owner": "PPL-015", "due": "2026-08-08", "status": "open"},
+        {"id": "AI-805", "text": "Prepare final recommendation memo for leadership with scoring breakdown", "owner": "PPL-015", "due": "2026-08-15", "status": "open"}
+      ]
     }
   ]
 }

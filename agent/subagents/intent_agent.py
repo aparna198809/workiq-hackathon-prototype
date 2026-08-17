@@ -30,6 +30,9 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+
 # Allow `python agent/subagents/intent_agent.py` from repo root without an install.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -92,13 +95,20 @@ Intent definitions:
                   something in a Dataverse table.
   - "compound"  : the turn contains both a retrieval and a write step
                   ("summarise the blockers AND open a risk item for each").
+                  ALSO classify as compound when the user asks to compare or
+                  check data against a table for potential updates — e.g.
+                  "check meetings for things that should go into the CAPA
+                  tracker", "what should be added to the tracker", "are there
+                  items that should be reflected in the table". These imply
+                  retrieval + recommendation of writes.
   - "refuse"    : the turn is clearly generic — general knowledge, coding,
                   math, trivia, translations, world facts, opinions, creative
                   writing — anything unrelated to this org's work context.
 
 Rules:
-  - Known tables today: ["capa_tracker"]. Fill entities.tables when a table is
-    named or clearly implied; leave empty otherwise.
+  - Known tables today: ["capa_tracker", "vendor_contract_tracker"]. Fill
+    entities.tables when a table is named or clearly implied; leave empty
+    otherwise.
   - Populate entities.keywords with the 1-5 most salient nouns/phrases.
   - Ambiguity defaults to "retrieve" (never to "refuse").
   - Only set intent="refuse" for clearly out-of-scope requests. In that case

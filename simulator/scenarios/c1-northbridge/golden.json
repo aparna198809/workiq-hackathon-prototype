@@ -85,6 +85,110 @@
       "restricted_citations": ["EML-003"],
       "required_sources": 3,
       "tool": "draft_document"
+    },
+    {
+      "id": "Q9",
+      "tier": "agent-automation",
+      "question": "Generate the weekly vendor and commitment status report across all active vendor contracts.",
+      "keywords": ["weekly vendor", "commitment status", "vendor contracts", "SLA", "open commitments"],
+      "answer": "Weekly Vendor & Commitment Status — Week of 14-JUL-2026:\n\n1. Lumina Health Systems (EHR & Clinical Software) — SLA: GREEN\n   Contract: $1.2M Implementation & Support MSA\n   Status: Westgate go-live completed 22-JUN on schedule. Post-go-live support active through 22-JUL.\n   Open commitments: 0. No SLA breaches.\n\n2. MediTech Biomedical (Medical & Biomedical Equipment) — SLA: GREEN\n   Contract: $340K Preventive Maintenance & Calibration MSA\n   Status: Riverside calibrations complete. Westgate patient-monitor calibration scheduled 14-JUL, autoclave validation 18-JUL.\n   Open commitments: 2. Calibration certificates due within 48h of service (by 20-JUL).\n   Renewal: MSA auto-renews 01-SEP — recommend tighter 24h SLA at renewal.\n\n3. PharmaLink Distributors (Clinical Supplies & Pharmacy) — SLA: AMBER\n   Contract: $520K Distribution Agreement\n   Status: Controlled-substance audit log binders delayed to 16-JUL (was 11-JUL). All other Q3 deliveries on schedule.\n   Open commitments: 1. SLA clause 5.2 (5% credit per week of delay) in play if 16-JUL slips.\n   Renewal: 15-OCT — rebid of controlled-substance segment recommended.\n\n4. ClearPoint Clinical Solutions (Clinical Software — CPOE & Lab) — SLA: GREEN\n   Contract: $280K License & Support Agreement\n   Status: CPOE v4.2 patch in vendor QA. Staging deployment 17-JUL, production cutover 21-JUL.\n   Open commitments: 2. HL7 feed activation pending (due 15-JUL); v4.2 medication-interaction alerting confirmed for JC compliance.\n\nOverall: 1 amber (PharmaLink minor delay), 0 SLA breaches, 5 open commitments across 4 vendors.",
+      "citations": ["VND-001", "VND-002", "VND-003", "VND-004", "EML-013", "MSG-006", "MTG-005"],
+      "restricted_citations": [],
+      "required_sources": 3,
+      "tool": "generate_report"
+    },
+    {
+      "id": "Q10",
+      "tier": "agent-automation",
+      "question": "Generate the Joint Commission readiness report focusing on vendor-related compliance items.",
+      "keywords": ["Joint Commission readiness", "vendor compliance", "readiness report", "compliance items", "calibration", "medication management", "equipment"],
+      "answer": "Joint Commission Readiness Report — Vendor Compliance Items (as of 14-JUL-2026):\n\n1. Medication Management (Joint Commission Standard MM)\n   a. Lumina Health Systems: Westgate EHR medication-list data migration validated and signed off. GO.\n   b. PharmaLink Distributors: Controlled-substance audit log binders delayed to 16-JUL — needed for pharmacy audit cycle (due 25-JUL). AT RISK if delayed further.\n   c. ClearPoint Clinical Solutions: CPOE v4.2 medication-interaction alerting module confirmed to meet JC medication-management standards (Appendix C). Deployment 21-JUL — before survey window. ON TRACK.\n\n2. Environment of Care — Equipment (Joint Commission Standard EC)\n   a. MediTech Biomedical: Westgate patient-monitor calibration (12 units) scheduled 14-JUL. Autoclave validation scheduled 18-JUL. Calibration certificates required by 20-JUL. ON TRACK.\n   b. Riverside clinic: All defibrillator and infusion-pump calibrations complete. GO.\n\n3. Human Resources / Credentialing\n   a. Provider-onboarding gap (CAPA-002): CLOSED (05-JUN). GO.\n\n4. Open CAPAs on Critical Path\n   a. CAPA-001 (medication-reconciliation policy): Past due — not vendor-dependent but affects medication-management readiness.\n   b. CAPA-004 (environment-of-care documentation): Past due — blocked on facilities vendor quote for signage.\n\nVendor Readiness Summary: 3 of 4 vendors GREEN, 1 AMBER (PharmaLink). All vendor-dependent JC items on track for completion before survey window, contingent on PharmaLink 16-JUL delivery and MediTech 18-JUL autoclave validation.",
+      "citations": ["VND-001", "VND-002", "VND-003", "VND-004", "FILE-004", "EML-007", "EML-008", "EML-009", "EML-011", "MSG-010", "CAPA-001", "CAPA-004"],
+      "restricted_citations": [],
+      "required_sources": 4,
+      "tool": "generate_report"
+    },
+    {
+      "id": "Q11",
+      "tier": "single-signal",
+      "question": "What is the current status of the MediTech Biomedical contract and what are the open commitments?",
+      "keywords": ["MediTech Biomedical", "contract", "status", "calibration", "commitments"],
+      "answer": "MediTech Biomedical Inc. holds a $340K Preventive Maintenance & Calibration MSA (category: Medical & Biomedical Equipment). Current SLA status is Green. Two open commitments remain: (1) Westgate patient-monitor bank calibration (12 units) scheduled for 14-JUL, and (2) autoclave validation scheduled for 18-JUL. Both are Joint Commission critical-path items. Calibration certificates are expected within 48 hours of each service visit (filed by 20-JUL). The MSA auto-renews on 01-SEP — the team recommends renewal with a tighter 24h SLA (currently 48h for preventive maintenance). Service credit clause: 10% of monthly fee per calendar month with an SLA breach. Riverside clinic calibrations (defibrillators, infusion pumps) are already complete.",
+      "citations": ["VND-002", "EML-007", "EML-008", "FILE-006"],
+      "restricted_citations": ["FILE-006"],
+      "required_sources": 2
+    },
+    {
+      "id": "Q12",
+      "tier": "multi-signal",
+      "question": "Which vendor contracts are coming up for renewal and what actions has procurement recommended?",
+      "keywords": ["vendor contracts", "renewal", "procurement", "recommended actions"],
+      "answer": "Three vendor contract renewals are on the Q3-Q4 horizon:\n\n1. MediTech Biomedical MSA — renews 01-SEP-2026 (auto-renewal, 60-day notice window already open since 03-JUL). Procurement recommendation: renew with updated SLA terms — reduce preventive-maintenance response from 48h to 24h. Performance has been solid.\n\n2. PharmaLink Distribution Agreement — renews 15-OCT-2026 (90-day rebid notice). Procurement recommendation: rebid the controlled-substance distribution segment given recent delivery delays (twice this year), while keeping the formulary-kit line with PharmaLink.\n\n3. ClearPoint License & Support — renews 01-MAR-2027 (120-day notice). No immediate action required, but procurement recommends flagging v4.2 upgrade performance data for the renewal negotiation.\n\nLumina Health Systems is also on a fixed-term MSA ending 01-MAR-2027 with 120-day notice — no action needed now.",
+      "citations": ["EML-014", "MSG-008", "VND-002", "VND-003", "VND-004", "MTG-005"],
+      "restricted_citations": ["EML-014"],
+      "required_sources": 2
+    },
+    {
+      "id": "Q13",
+      "tier": "agent-mcp-tools",
+      "question": "Are there any new action items from the latest meetings that should be reflected in the CAPA tracker? Compare against existing open items and tell me what you recommend.",
+      "keywords": ["new action items", "latest meetings", "recent meetings", "CAPA tracker", "action tracker", "compare", "existing open items", "open items", "recommend", "updates", "new entries", "meeting actions", "should be added", "should be reflected"],
+      "answer": "Comparing action items from the latest meetings (MTG-005 Monthly Vendor Performance Review, 10-JUL and MTG-006 Emergency Quality Review, 18-JUL) against the current CAPA tracker:\n\n**Recommended updates to existing CAPAs:**\n1. CAPA-001 (medication-reconciliation policy) — Currently status: Flagged. Per MTG-006, Angela confirmed the policy draft is complete but awaiting legal sign-off. Recommend: change status from Flagged to Open, update due_date to 2026-07-25.\n\n**Recommended new CAPA entries:**\n1. NEW — PharmaLink supply-chain compliance audit (from MTG-006 action item AI-601). Owner: Karen Liu (PPL-011). Due: 2026-07-30. The emergency review decided this is needed due to repeated controlled-substance delivery delays.\n2. NEW — MediTech calibration certificate tracking (from MTG-005 action item AI-501). Owner: Karen Liu (PPL-011). Due: 2026-07-20. Critical for Joint Commission equipment readiness.\n\n**Already tracked (no action needed):**\n- CAPA-003 (Westgate medication-list migration) — already Open, owner Greg Sullivan.\n- CAPA-004 (environment-of-care documentation) — already Flagged, owner Priya Raman.\n\nSummary: 1 existing CAPA needs a status/date update, and 2 new CAPAs should be created.",
+      "citations": ["MTG-005", "MTG-006", "CAPA-001", "CAPA-003", "CAPA-004", "AI-601", "AI-501"],
+      "restricted_citations": [],
+      "required_sources": 3,
+      "tool": "update_entity"
+    },
+    {
+      "id": "Q14",
+      "tier": "single-signal",
+      "question": "What vendor proposals have we received for the telehealth RFP and how do they compare on cost?",
+      "keywords": ["vendor proposals", "telehealth", "RFP-001", "compare", "cost", "proposals received"],
+      "answer": "Three vendor proposals received for RFP-001 (Telehealth Platform):\n\n1. **VirtuCare Health** — $185,000/year (3-year TCO: $520,000). Includes $60K implementation fee. e-Prescribing included at no extra cost. 8-week implementation.\n\n2. **TeleMedix Solutions** — $210,000/year (3-year TCO: $595,000). Includes $55K implementation + onsite training. Highest cost but most comprehensive (HITRUST, 99.95% SLA, 1h P1 response). 12-week implementation.\n\n3. **HealthBridge Connect** — $125,000/year (3-year TCO: $340,000). No implementation fee (early-adopter pricing). Lowest cost, but e-prescribing is a $15K/year add-on (true annual cost: $140K). 6-week implementation.\n\nCost ranking (lowest to highest annual): HealthBridge ($125K base / $140K with e-Rx) → VirtuCare ($185K) → TeleMedix ($210K).\nTCO ranking (3-year): HealthBridge ($340K) → VirtuCare ($520K) → TeleMedix ($595K).",
+      "citations": ["EML-015", "EML-016", "EML-017", "FILE-009", "FILE-010", "FILE-011", "PROP-001", "PROP-002", "PROP-003"],
+      "restricted_citations": [],
+      "required_sources": 2
+    },
+    {
+      "id": "Q15",
+      "tier": "multi-signal",
+      "question": "Score and rank the telehealth vendor proposals — which vendor should we shortlist and why?",
+      "keywords": ["score", "rank", "telehealth", "vendor proposals", "shortlist", "evaluation", "recommend"],
+      "answer": "Agent-scored ranking for RFP-001 (Telehealth Platform) using the weighted evaluation matrix (Cost 20%, Technical 20%, SLA 15%, Compliance 15%, Implementation 10%, Stability 10%, Innovation 10%):\n\n**1. TeleMedix Solutions — Weighted Score: 8.35 ✓ SHORTLISTED**\n- Cost: 6/10 (highest cost at $210K/yr)\n- Technical: 9/10 (native LuminaEHR connector at 8 live sites)\n- SLA: 10/10 (99.95% uptime, 1h P1 — best of all three)\n- Compliance: 10/10 (HITRUST + SOC 2 + DEA EPCS)\n- Implementation: 7/10 (12 weeks — longest, but includes onsite training)\n- Stability: 9/10 (500+ clients, 10 years in market)\n- Innovation: 7/10 (mature but less cutting-edge)\n\n**2. VirtuCare Health — Weighted Score: 7.80 ✓ SHORTLISTED**\n- Cost: 7/10 (mid-range at $185K/yr)\n- Technical: 8/10 (strong HL7/FHIR, 200+ clients)\n- SLA: 8/10 (99.9%, 2h P1)\n- Compliance: 7/10 (SOC 2 only — no HITRUST)\n- Implementation: 8/10 (8 weeks — fastest of mature vendors)\n- Stability: 8/10 (200+ clients, established)\n- Innovation: 7/10 (solid but conventional)\n\n**3. HealthBridge Connect — Weighted Score: 6.45 ✗ NOT SHORTLISTED**\n- Cost: 9/10 (lowest at $125K/yr)\n- Technical: 6/10 (LuminaEHR connector not pre-built)\n- SLA: 5/10 (99.5%, 4h P1 — weakest)\n- Compliance: 4/10 (SOC 2 incomplete, no HITRUST)\n- Implementation: 7/10 (6 weeks but integration risk)\n- Stability: 4/10 (startup, 45 clients, founded 2023)\n- Innovation: 9/10 (AI triage is differentiating)\n\n**Recommendation:** Shortlist TeleMedix (front-runner on compliance and SLA) and VirtuCare (value option with strong integration). HealthBridge carries too much risk with incomplete SOC 2, no pre-built LuminaEHR connector, and startup vendor stability concerns.",
+      "citations": ["PROP-001", "PROP-002", "PROP-003", "EML-015", "EML-016", "EML-017", "FILE-009", "FILE-010", "FILE-011", "MTG-006", "MTG-007", "MTG-008"],
+      "restricted_citations": [],
+      "required_sources": 3
+    },
+    {
+      "id": "Q16",
+      "tier": "multi-signal",
+      "question": "Give me a side-by-side comparison of all vendor proposals across all RFPs — scoring, status, and key risks.",
+      "keywords": ["side-by-side", "comparison", "all vendor proposals", "all RFPs", "scoring", "risks", "vendor evaluation"],
+      "answer": "Side-by-side vendor proposal comparison across all 3 RFPs:\n\n**RFP-001: Telehealth Platform (Budget: $150K–$250K/yr)**\n| Vendor | Cost/yr | Score | Status | Key Risk |\n|--------|---------|-------|--------|----------|\n| TeleMedix Solutions | $210K | 8.35 | Shortlisted | Highest cost; longest implementation |\n| VirtuCare Health | $185K | 7.80 | Shortlisted | No HITRUST certification |\n| HealthBridge Connect | $125K | 6.45 | Not Shortlisted | SOC 2 incomplete; no Lumina connector; startup |\n\n**RFP-002: Clinical Analytics & Reporting (Budget: $100K–$180K/yr)**\n| Vendor | Cost/yr | Score | Status | Key Risk |\n|--------|---------|-------|--------|----------|\n| Meridian Data Sciences | $165K | 8.10 | Shortlisted | None significant |\n| InsightHealth Analytics | $130K | 6.90 | Not Shortlisted | 4 of 12 JC report templates missing until Q1 2027 |\n\n**RFP-003: Medical Waste Management (Budget: $60K–$100K/yr)**\n| Vendor | Cost/yr | Score | Status | Key Risk |\n|--------|---------|-------|--------|----------|\n| EnviroMed Disposal | $82K | 7.70 | Shortlisted | None significant |\n| GreenHealth Waste Services | $68K | 6.85 | Not Shortlisted | Pharma waste subcontracted; slower emergency response |\n\n**Summary:** 4 vendors shortlisted (TeleMedix, VirtuCare, Meridian, EnviroMed), 3 not shortlisted (HealthBridge, InsightHealth, GreenHealth). Total annual spend for shortlisted vendors: ~$457K–$492K depending on telehealth selection. Contract negotiations underway, target selection by 15-AUG.",
+      "citations": ["PROP-001", "PROP-002", "PROP-003", "PROP-004", "PROP-005", "PROP-006", "PROP-007", "MTG-008", "EML-022", "MSG-013", "MSG-014", "MSG-015"],
+      "restricted_citations": [],
+      "required_sources": 3
+    },
+    {
+      "id": "Q17",
+      "tier": "agentic-synthesis",
+      "question": "What did the evaluation panel decide in the vendor shortlisting meeting and what are the next steps?",
+      "keywords": ["evaluation panel", "vendor shortlisting", "panel meeting", "shortlist decision", "next steps", "vendor selection"],
+      "answer": "Evaluation panel meeting (05-AUG, MTG-008) decisions and next steps:\n\n**Decisions:**\n\n1. **RFP-001 (Telehealth):** Shortlisted TeleMedix Solutions (score 8.35) and VirtuCare Health (7.80). HealthBridge Connect (6.45) eliminated — SOC 2 incomplete, no pre-built LuminaEHR connector, startup risk. TeleMedix is the front-runner on compliance (HITRUST) and SLA; VirtuCare is the value option.\n\n2. **RFP-002 (Analytics):** Shortlisted Meridian Data Sciences (8.10) only. InsightHealth Analytics (6.90) eliminated — 4 missing Joint Commission report templates are a blocker (templates not available until Q1 2027, but Northbridge needs them for the upcoming Joint Commission review).\n\n3. **RFP-003 (Waste):** Shortlisted EnviroMed Disposal (7.70) only. GreenHealth Waste Services (6.85) eliminated — third-party pharmaceutical waste handling via PharmaCycle is a DEA chain-of-custody compliance concern.\n\n**Next Steps:**\n- Marcus Webb to begin contract negotiations with TeleMedix, VirtuCare, Meridian, and EnviroMed (due 12-AUG)\n- Marcus Webb to send rejection notifications to HealthBridge, InsightHealth, and GreenHealth (due 08-AUG)\n- Final recommendation memo with scoring breakdown due 15-AUG\n- Target vendor selection by 15-AUG for all three RFPs",
+      "citations": ["MTG-008", "PROP-001", "PROP-002", "PROP-003", "PROP-004", "PROP-005", "PROP-006", "PROP-007", "EML-022"],
+      "restricted_citations": [],
+      "required_sources": 2
+    },
+    {
+      "id": "Q18",
+      "tier": "agent-mcp-tools",
+      "question": "Update the vendor proposal tracker to reflect the evaluation panel's shortlist decisions and flag any proposals that need follow-up actions.",
+      "keywords": ["update", "vendor proposal tracker", "shortlist", "evaluation panel", "follow-up", "proposal status"],
+      "answer": "Based on the evaluation panel meeting (MTG-008, 05-AUG), the following updates should be applied to the vendor_proposal_tracker:\n\n**Status updates (already reflected):**\n- PROP-001 (VirtuCare) → Shortlisted ✓\n- PROP-002 (TeleMedix) → Shortlisted ✓\n- PROP-003 (HealthBridge) → Not Shortlisted ✓\n- PROP-004 (Meridian) → Shortlisted ✓\n- PROP-005 (InsightHealth) → Not Shortlisted ✓\n- PROP-006 (EnviroMed) → Shortlisted ✓\n- PROP-007 (GreenHealth) → Not Shortlisted ✓\n\n**Follow-up actions needed:**\n1. PROP-001 & PROP-002: Request detailed service credit schedules from VirtuCare and TeleMedix for contract negotiation (AI-601, AI-701)\n2. PROP-001 & PROP-002: Verify reference clients (Cascade Health for VirtuCare, Regional Health Partners for TeleMedix) (AI-602, AI-702)\n3. PROP-003, PROP-005, PROP-007: Send formal rejection notifications to non-shortlisted vendors (AI-804)\n4. All shortlisted proposals: Begin contract negotiation, target completion by 12-AUG (AI-801, AI-802, AI-803)",
+      "citations": ["MTG-008", "PROP-001", "PROP-002", "PROP-003", "PROP-004", "PROP-005", "PROP-006", "PROP-007"],
+      "restricted_citations": [],
+      "required_sources": 2,
+      "tool": "update_entity"
     }
   ]
 }

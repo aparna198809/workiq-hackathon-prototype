@@ -40,6 +40,86 @@
       "date": "2026-06-11T09:15:00Z",
       "acl": ["ops_director", "quality_pm", "credentialing_lead"],
       "text": "Reminder for the readiness review: CAPA-004 (Westgate environment-of-care documentation) is still open and past due. Credentialing already closed the onboarding gap (CAPA-002). Med-rec policy (CAPA-001) is the other open item."
+    },
+    {
+      "id": "MSG-006",
+      "channel": "Vendor Management",
+      "author": "PPL-011",
+      "date": "2026-07-07T11:00:00Z",
+      "acl": ["ops_director", "quality_pm", "vendor_manager"],
+      "text": "Vendor portfolio update: 4 active vendor contracts across EHR, biomedical equipment, clinical supplies, and clinical software. All SLAs green except a minor PharmaLink delivery delay on controlled-substance log binders (revised ETA 16-JUL). Details in the weekly roll-up."
+    },
+    {
+      "id": "MSG-007",
+      "channel": "Vendor Management",
+      "author": "PPL-011",
+      "date": "2026-07-08T14:30:00Z",
+      "acl": ["ops_director", "quality_pm", "vendor_manager"],
+      "text": "MediTech confirmed Westgate patient-monitor calibration for 14-JUL and autoclave validation for 18-JUL. Both are Joint Commission critical-path items. Certificates expected within 48 hours of each visit."
+    },
+    {
+      "id": "MSG-008",
+      "channel": "Vendor Management",
+      "author": "PPL-015",
+      "date": "2026-07-09T16:00:00Z",
+      "acl": ["ops_director", "vendor_manager"],
+      "text": "Contract renewal heads-up: MediTech MSA auto-renews 01-SEP (60-day notice window opens 03-JUL). PharmaLink agreement renews 15-OCT — recommend rebidding the controlled-substance segment given recent delays. ClearPoint renewal not until MAR-2027."
+    },
+    {
+      "id": "MSG-009",
+      "channel": "Vendor Management",
+      "author": "PPL-004",
+      "date": "2026-07-10T12:00:00Z",
+      "acl": ["ops_director", "quality_pm", "vendor_manager"],
+      "text": "ClearPoint needs the HL7 feed from LuminaEHR activated for the CPOE lab interface. I'll coordinate with Tom Becker to get it opened by 15-JUL so ClearPoint can deploy the v4.2 patch to staging on 17-JUL."
+    },
+    {
+      "id": "MSG-010",
+      "channel": "Vendor Management",
+      "author": "PPL-011",
+      "date": "2026-07-14T09:00:00Z",
+      "acl": ["ops_director", "quality_pm", "vendor_manager"],
+      "text": "Weekly Joint Commission vendor readiness: MediTech calibrations on track (patient monitors today, autoclave 18-JUL). PharmaLink audit logs ETA 16-JUL — pharmacy team confirmed acceptable. ClearPoint CPOE v4.2 med-interaction alerting meets JC medication-management standard. Lumina post-go-live support active through 22-JUL."
+    },
+    {
+      "id": "MSG-011",
+      "channel": "Procurement & RFPs",
+      "author": "PPL-015",
+      "date": "2026-07-20T10:30:00Z",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "quality_pm"],
+      "text": "First telehealth proposal in from VirtuCare Health — $185K/year, 8-week implementation, strong EHR integration story with LuminaEHR. Full proposal in the RFP-001 folder. Two more telehealth proposals expected this week."
+    },
+    {
+      "id": "MSG-012",
+      "channel": "Procurement & RFPs",
+      "author": "PPL-015",
+      "date": "2026-07-24T17:00:00Z",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "quality_pm"],
+      "text": "All proposals received: 3 for RFP-001 (telehealth), 2 for RFP-002 (analytics), 2 for RFP-003 (waste management). Total 7 vendor proposals across 3 RFPs. Starting evaluation scoring this week. Evaluation panel meeting scheduled 30-JUL."
+    },
+    {
+      "id": "MSG-013",
+      "channel": "Procurement & RFPs",
+      "author": "PPL-015",
+      "date": "2026-07-27T11:00:00Z",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "quality_pm"],
+      "text": "Initial scoring note on RFP-001: TeleMedix has the strongest compliance package (HITRUST + SOC 2 + DEA EPCS) and best SLA (99.95%, 1h P1). VirtuCare offers best value-for-money with solid integration. HealthBridge is cheapest but carries startup risk — SOC 2 not yet complete and LuminaEHR integration is not pre-built. Will have full scoring in the tracker by 28-JUL."
+    },
+    {
+      "id": "MSG-014",
+      "channel": "Procurement & RFPs",
+      "author": "PPL-011",
+      "date": "2026-07-28T14:00:00Z",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "quality_pm"],
+      "text": "Reviewed Marcus's scoring for RFP-002 (analytics). Agree that Meridian is the clear leader — native connectors for both LuminaEHR and ClearPoint, all 12 JC report templates ready. InsightHealth is $35K/year cheaper but the 4 missing JC templates are a gap we can't accept before the Joint Commission review. Recommend Meridian for shortlist."
+    },
+    {
+      "id": "MSG-015",
+      "channel": "Procurement & RFPs",
+      "author": "PPL-015",
+      "date": "2026-07-28T16:30:00Z",
+      "acl": ["ops_director", "procurement_eval", "vendor_manager", "quality_pm"],
+      "text": "RFP-003 (waste management) scoring complete. EnviroMed vs GreenHealth: EnviroMed is $14K/year more but has own DOT fleet, in-house pharmaceutical waste handling, faster 4h emergency response, and stronger regional references. GreenHealth subcontracts pharma waste to PharmaCycle and has 6h emergency response. For a healthcare network our size, I recommend EnviroMed — the compliance risk of third-party pharma waste handling is a concern."
     }
   ]
 }

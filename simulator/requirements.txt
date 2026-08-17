@@ -9,3 +9,6 @@
 
 mcp>=1.27           # MCP Python SDK (FastMCP stdio server + client)
 openai>=1.0         # OPTIONAL: ad-hoc LLM fallback for non-golden questions
+numpy>=1.24         # Embedding vector operations (cosine similarity, caching)
+httpx>=0.27         # HTTP client for Azure AI Search + embedding API calls
+azure-identity>=1.15  # Azure authentication (AzureCliCredential for token-based auth)
